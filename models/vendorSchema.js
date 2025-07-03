@@ -16,8 +16,8 @@ const vendorSchema = new mongoose.Schema(
       pincode: { type: String, default: "000000" },
     },
     idProof: {
-      type: String,
-      default: "defaultIdProofDemo.jpg",
+      data: Buffer,
+      contentType: { type: String, default: "application/pdf" },
     },
     workingDays: {
       monday: { type: Boolean, default: false },

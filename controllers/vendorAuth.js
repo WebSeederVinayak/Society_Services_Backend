@@ -61,7 +61,7 @@ exports.createVendorProfile = async (req, res) => {
       services,
       businessName,
       address,
-      idProof,
+      // idProof,
       workingDays,
       workingHours,
       experience,
@@ -75,7 +75,7 @@ exports.createVendorProfile = async (req, res) => {
       ...(services && { services }),
       ...(businessName && { businessName }),
       ...(address && { address }),
-      ...(idProof && { idProof }),
+      // ...(idProof && { idProof }),
       ...(workingDays && { workingDays }),
       ...(workingHours && { workingHours }),
       ...(experience !== undefined && { experience }),
@@ -84,7 +84,12 @@ exports.createVendorProfile = async (req, res) => {
       ...(paymentMethods && { paymentMethods }),
       ...(lastPayments && { lastPayments }),
     };
-
+    if (req.file) {
+      updateData.idProof = {
+        data: req.file.buffer,
+        contentType: req.file.mimetype,
+      };
+    }
     const updatedVendor = await Vendor.findByIdAndUpdate(vendorId, updateData, {
       new: true,
       runValidators: true,
