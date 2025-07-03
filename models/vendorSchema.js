@@ -15,9 +15,9 @@ const vendorSchema = new mongoose.Schema(
       state: { type: String, default: "Not Given" },
       pincode: { type: String, default: "000000" },
     },
+
     idProof: {
-      data: Buffer,
-      contentType: { type: String, default: "application/pdf" },
+      type: String,
     },
     workingDays: {
       monday: { type: Boolean, default: false },

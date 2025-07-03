@@ -1,21 +1,17 @@
 const multer = require("multer");
 
-const storage = multer.memoryStorage();
-
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype === "application/pdf") {
-    cb(null, true); // accept the file
-  } else {
-    cb(new Error("Only PDF files are allowed!"), false); // reject other types
-  }
-};
-
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: {
-    fileSize: 5 * 1024 * 1024,
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // fileSacing folder anme where files will be saved
+  },
+  filename: (req, file, cb) => {
+    const uniqueName = Date.now() + "-" + file.originalname; // To prevent the conflict as i hve faced it during AWS
+    req.file.uniqueName = uniqueName; // Store the unique name in req.file for later use
+    cb(null, uniqueName);
   },
 });
+
+// Multer instance
+const upload = multer({ storage });
 
 module.exports = upload.single("idProof");
