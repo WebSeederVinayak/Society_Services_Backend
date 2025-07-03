@@ -11,7 +11,7 @@ const {
 } = require("../middlewares/roleBasedAuth");
 router.post("/signup", signupVendor);
 router.post("/login", loginVendor);
-rounter.post(
+router.put(
   "/createProfile",
   authenticate,
   authorizeRoles("vendor"),

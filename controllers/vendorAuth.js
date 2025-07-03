@@ -19,7 +19,7 @@ exports.signupVendor = async (req, res) => {
       // services,
     });
     const token = jwt.sign(
-      { id: vendor._id, role: vendor.role },
+      { id: newVendor._id, role: newVendor.role },
       process.env.JWT_SECRET,
       { expiresIn: "2h" }
     );
@@ -99,7 +99,7 @@ exports.createVendorProfile = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Vendor profile updated successfully",
-      data: updatedVendor,
+      // data: updatedVendor,
     });
   } catch (error) {
     console.error("Error updating vendor:", error);
