@@ -98,14 +98,11 @@ exports.validateOTP = async (req, res) => {
     } else {
       // If OTP is valid, clear it
       vendor.otp = null;
+      vendor.isVerified = true;
       await vendor.save();
-      const token = jwt.sign(
-        { id: vendor._id, role: vendor.role },
-        process.env.JWT_SECRET
-      );
+
       res.json({
         status: true,
-        authToken: token,
         msg: "Email validated successfully",
       });
     }
