@@ -71,7 +71,7 @@ exports.sendValidationOTP = async (req, res) => {
     ).select("name");
     const response = sendOTP(updatedVendor.name, generatedOTP, email);
     console.log("OTP sent response:", response);
-    if (response == true) {
+    if (response) {
       res.json({
         status: true,
         msg: "OTP sent to your email",
@@ -88,26 +88,27 @@ exports.sendValidationOTP = async (req, res) => {
   }
 };
 
-exports.validateOTP = async (req, res) => {
+exports.validateEmail = async (req, res) => {
   try {
-    const { email, otp } = req.body;
-    const vendor = await Vendor.findOne({ email }).select("otp");
-    if (!vendor) return res.status(400).json({ msg: "Vendor not found" });
-    if (vendor.otp !== otp) {
-      return res.status(400).json({ status: false, msg: "Invalid OTP" });
-    } else {
+    const { email } = req.body;
+
+    if (res.otpValidationResult) {
       // If OTP is valid, clear it
+      const vendor = await Vendor.findOne({ email });
+
       vendor.otp = null;
       vendor.isVerified = true;
       await vendor.save();
-
       res.json({
         status: true,
         msg: "Email validated successfully",
       });
+    } else {
+      return res.status(400).json({ status: false, msg: "Invalid OTP" });
     }
-  } catch (err) {
-    res.status(500).json({ msg: "Server error", error: err.message });
+  } catch (error) {
+    console.error("Error in validateEmail:", error);
+    res.status(500).json({ msg: "Server error", error: error.message });
   }
 };
 
@@ -192,16 +193,16 @@ exports.createVendorProfile = async (req, res) => {
 
 exports.forgetPassword = async (req, res) => {
   try {
-    const { email } = req.body;
-    const vendor = await Vendor.findOne({ email });
-    if (!vendor) return res.status(400).json({ msg: "Vendor not found" });
-    const token = jwt.sign(
-      { id: vendor._id, role: vendor.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-
-    res.json({ msg: "Password reset link sent", resetToken: token });
+    if (res.otpValidationResult) {
+      const { email, newPassword } = req.body;
+      const vendor = await Vendor.findOne({ email });
+      vendor.otp = null;
+      vendor.password = await bcrypt.hash(newPassword, 10);
+      await vendor.save();
+      res.json({ msg: "Password Reset Successfull" });
+    } else {
+      return res.status(400).json({ msg: "Invalid OTP" });
+    }
   } catch (err) {
     res.status(500).json({ msg: "Server error", error: err.message });
   }

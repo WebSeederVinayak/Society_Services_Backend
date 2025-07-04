@@ -5,9 +5,10 @@ const {
   signupVendor,
   createVendorProfile,
   sendValidationOTP,
-
-  validateOTP,
+  validateEmail,
+  forgetPassword,
 } = require("../controllers/vendor/vendorAuth");
+const { validateOTP } = require("../middlewares/thirdPartyServicesMiddleware");
 const {
   authenticate,
   authorizeRoles,
@@ -25,11 +26,8 @@ router.put(
   createVendorProfile
 );
 
-router.post(
-  "/sendOtp",
+router.post("/sendOtp", sendValidationOTP);
 
-  sendValidationOTP
-);
-
-router.get("/validateOtp", validateOTP);
+router.get("/validateEmail", validateOTP, validateEmail);
+router.get("/forgetPassword", validateOTP, forgetPassword);
 module.exports = router;
