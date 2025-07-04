@@ -25,11 +25,7 @@ router.put(
   createVendorProfile
 );
 
-router.post(
-  "/sendOtp",
-
-  sendValidationOTP
-);
+router.post("/sendOtp",sendValidationOTP);
 
 router.get("/validateOtp", validateOTP);
 module.exports = router;
