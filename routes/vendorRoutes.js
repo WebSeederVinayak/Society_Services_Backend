@@ -26,7 +26,11 @@ router.put(
   createVendorProfile
 );
 
-router.post("/sendOtp", sendValidationOTP);
+router.post(
+  "/sendOtp",
+
+  sendValidationOTP
+);
 
 router.get("/validateEmail", validateOTP, validateEmail);
 router.get("/forgetPassword", validateOTP, forgetPassword);
