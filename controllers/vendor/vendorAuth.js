@@ -2,6 +2,11 @@ const Vendor = require("../../models/vendorSchema");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const {
+  sendOTP,
+  generate4DigitOtp,
+} = require("../../thirdPartyAPI/mailjet/smtpforTOTP");
+
 exports.signupVendor = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -54,12 +59,71 @@ exports.loginVendor = async (req, res) => {
   }
 };
 
+exports.sendValidationOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    // const vendor = await Vendor.find({ email });
+    const generatedOTP = generate4DigitOtp(email);
+    const updatedVendor = await Vendor.findOneAndUpdate(
+      { email: email }, // Filter by email
+      { $set: { otp: generatedOTP } }, // Update only 'name'
+      { new: true } // Return the updated document
+    ).select("name");
+    const response = sendOTP(updatedVendor.name, generatedOTP, email);
+    console.log("OTP sent response:", response);
+    if (response == true) {
+      res.json({
+        status: true,
+        msg: "OTP sent to your email",
+        vendorName: updatedVendor.name,
+      });
+    } else {
+      res.status(500).json({
+        status: false,
+        msg: "Failed to send OTP, please try again later",
+      });
+    }
+  } catch (err) {
+    res.status(500).json({ msg: "Server error", error: err.message });
+  }
+};
+
+exports.validateOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const vendor = await Vendor.findOne({ email }).select("otp");
+    if (!vendor) return res.status(400).json({ msg: "Vendor not found" });
+    if (vendor.otp !== otp) {
+      return res.status(400).json({ status: false, msg: "Invalid OTP" });
+    } else {
+      // If OTP is valid, clear it
+      vendor.otp = null;
+      await vendor.save();
+      const token = jwt.sign(
+        { id: vendor._id, role: vendor.role },
+        process.env.JWT_SECRET
+      );
+      res.json({
+        status: true,
+        authToken: token,
+        msg: "Email validated successfully",
+      });
+    }
+  } catch (err) {
+    res.status(500).json({ msg: "Server error", error: err.message });
+  }
+};
+
 exports.createVendorProfile = async (req, res) => {
   try {
     const vendorId = req.user.id;
 
     // Parse fields from multipart/form-data
     const updateData = {};
+
+    if (req.body.name) {
+      updateData.name = req.body.name;
+    }
 
     // Parse JSON string fields safely
     if (req.body.address) {

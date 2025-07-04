@@ -4,6 +4,9 @@ const {
   loginVendor,
   signupVendor,
   createVendorProfile,
+  sendValidationOTP,
+
+  validateOTP,
 } = require("../controllers/vendor/vendorAuth");
 const {
   authenticate,
@@ -22,4 +25,12 @@ router.put(
   createVendorProfile
 );
 
+router.post(
+  "/sendOtp",
+  authenticate,
+  authorizeRoles("vendor"),
+  sendValidationOTP
+);
+
+router.get("/validateOtp", authenticate, authorizeRoles("vendor"), validateOTP);
 module.exports = router;

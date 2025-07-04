@@ -7,6 +7,7 @@ const vendorSchema = new mongoose.Schema(
     profilePicture: { type: String, default: "AWSDefaultVendor.jpg" }, //done
     email: { type: String, required: true, unique: true }, //done
     password: { type: String, required: true }, //done
+    otp: { type: String },
     address: {
       buildingNumber: { type: String, default: "Not Given" },
       locality: { type: String, default: "Not Given" },
