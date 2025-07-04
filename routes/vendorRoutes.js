@@ -27,10 +27,9 @@ router.put(
 
 router.post(
   "/sendOtp",
-  authenticate,
-  authorizeRoles("vendor"),
+
   sendValidationOTP
 );
 
-router.get("/validateOtp", authenticate, authorizeRoles("vendor"), validateOTP);
+router.get("/validateOtp", validateOTP);
 module.exports = router;
