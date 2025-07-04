@@ -6,7 +6,7 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const uniqueName = Date.now() + "-" + file.originalname; // To prevent the conflict as i hve faced it during AWS
-    req.file.uniqueName = uniqueName; // Store the unique name in req.file for later use
+    req.body.uniqueName = uniqueName; // Store the unique name in req.file for later use
     cb(null, uniqueName);
   },
 });

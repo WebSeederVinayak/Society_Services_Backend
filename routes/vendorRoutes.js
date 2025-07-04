@@ -4,7 +4,7 @@ const {
   loginVendor,
   signupVendor,
   createVendorProfile,
-} = require("../controllers/vendorAuth");
+} = require("../controllers/vendor/vendorAuth");
 const {
   authenticate,
   authorizeRoles,
