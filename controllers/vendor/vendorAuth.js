@@ -1,19 +1,21 @@
 const Vendor = require("../../models/vendorSchema");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const nonVerified = require("../../models/notVerified");
 
 const {
   sendOTP,
   generate4DigitOtp,
-} = require("../../thirdPartyAPI/mailjet/smtpforTOTP");
+} = require("../../thirdPartyAPI/nodeMailerSMTP/smtpforTOTP");
 
 exports.signupVendor = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    const existing = await Vendor.findOne({ email });
-    if (existing) return res.status(400).json({ msg: "Vendor already exists" });
-
+    const existing = await nonVerified.findOne({ email }).select("isVerified");
+    if (!existing || !existing.isVerified) {
+      return res.status(400).json({ msg: "First please verify the user" });
+    }
     const hashed = await bcrypt.hash(password, 10);
     const newVendor = new Vendor({
       name,
@@ -25,14 +27,14 @@ exports.signupVendor = async (req, res) => {
     });
     const token = jwt.sign(
       { id: newVendor._id, role: newVendor.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "2h" }
+      process.env.JWT_SECRET
     );
 
     await newVendor.save();
+    await existing.deleteOne();
     res
       .status(201)
-      .json({ authToken: token, msg: "Vendor registered successfully" });
+      .json({ authToken: token, msg: "Vendor registered successfully " });
   } catch (err) {
     res.status(500).json({ msg: "Server error", error: err.message });
   }
@@ -62,15 +64,40 @@ exports.loginVendor = async (req, res) => {
 exports.sendValidationOTP = async (req, res) => {
   try {
     const { email } = req.body;
+    const generatedOTP = await generate4DigitOtp(email);
     // const vendor = await Vendor.find({ email });
-    const generatedOTP = generate4DigitOtp(email);
-    const updatedVendor = await Vendor.findOneAndUpdate(
-      { email: email }, // Filter by email
-      { $set: { otp: generatedOTP } }, // Update only 'name'
-      { new: true } // Return the updated document
-    ).select("name");
-    const response = sendOTP(updatedVendor.name, generatedOTP, email);
-    console.log("OTP sent response:", response);
+    if (req.notVerified) {
+      //otp for newVendorVerification
+      var response = await sendOTP("no Name", generatedOTP, email);
+      if (response) {
+        const notVerifiedVendor = await nonVerified.findOne({ email });
+        if (notVerifiedVendor) {
+          notVerifiedVendor.otp = generatedOTP;
+          notVerifiedVendor.lastOTPSend = new Date();
+          await notVerifiedVendor.save();
+        } else {
+          await nonVerified.create({
+            email,
+            otp: generatedOTP,
+          });
+        }
+        return res.json({ status: false, msg: "Not Verified Vendor OTP Send" });
+      } else {
+        return res.status(401).json({ status: false, msg: "email not send" });
+      }
+    } else {
+      // otp for forgetPassword
+      const updatedVendor = await Vendor.findOneAndUpdate(
+        { email: email }, // Filter by email
+        { $set: { otp: generatedOTP } }, // Update only 'name'
+        { new: true } // Return the updated document
+      ).select("name");
+      if (!updatedVendor) {
+        return res.status(404).json({ status: false, msg: "Vendor not found" });
+      }
+      var response = await sendOTP(updatedVendor.name, generatedOTP, email);
+      console.log("OTP sent response:", response);
+    }
     if (response) {
       res.json({
         status: true,
@@ -84,7 +111,7 @@ exports.sendValidationOTP = async (req, res) => {
       });
     }
   } catch (err) {
-    res.status(500).json({ msg: "Server error", error: err.message });
+    res.status(503).json({ msg: "Server error", error: err.message });
   }
 };
 
@@ -94,6 +121,7 @@ exports.validateEmail = async (req, res) => {
 
     if (res.otpValidationResult) {
       // If OTP is valid, clear it
+      console.log("otpValidationResult is true");
       const vendor = await Vendor.findOne({ email });
 
       vendor.otp = null;
@@ -102,6 +130,14 @@ exports.validateEmail = async (req, res) => {
       res.json({
         status: true,
         msg: "Email validated successfully",
+      });
+    } else if (res.nonVerifiedUserValid) {
+      console.log("nonVerifiedUserValid is true");
+
+      res.json({
+        status: true,
+        email,
+        msg: "New Vendor Verified , please Make Signup Now",
       });
     } else {
       return res.status(400).json({ status: false, msg: "Invalid OTP" });

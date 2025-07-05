@@ -14,6 +14,7 @@ const {
   authorizeRoles,
 } = require("../middlewares/roleBasedAuth");
 const uploadIDProof = require("../middlewares/uploadIDProof");
+const { signUpNotVerified } = require("../controllers/notVerifiedAuth");
 
 router.post("/signup", signupVendor);
 router.post("/login", loginVendor);
@@ -26,11 +27,8 @@ router.put(
   createVendorProfile
 );
 
-router.post(
-  "/sendOtp",
-
-  sendValidationOTP
-);
+router.post("/sendOtpEmailVerification", signUpNotVerified, sendValidationOTP);
+router.post("/sendOtp", sendValidationOTP);
 
 router.get("/validateEmail", validateOTP, validateEmail);
 router.get("/forgetPassword", validateOTP, forgetPassword);

@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const { signupSociety, loginSociety } = require("../controllers/societyAuth");
+const {
+  signupSociety,
+  loginSociety,
+} = require("../controllers/society/societyAuth");
 const {
   authenticate,
   authorizeRoles,

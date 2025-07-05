@@ -10,7 +10,6 @@ const vendorSchema = new mongoose.Schema(
       required: true,
       unique: true,
     }, //done
-    isVerified: { type: Boolean, default: false },
     password: { type: String, required: true }, //done
     otp: { type: String },
     address: {
