@@ -28,8 +28,8 @@ router.put(
 );
 
 router.post("/sendOtpEmailVerification", signUpNotVerified, sendValidationOTP);
-router.post("/sendOtp", sendValidationOTP);
+router.post("/sendOTP", sendValidationOTP);
 
-router.get("/validateEmail", validateOTP, validateEmail);
-router.get("/forgetPassword", validateOTP, forgetPassword);
+router.post("/validateEmail", validateOTP, validateEmail);
+router.post("/forgetPassword", validateOTP, forgetPassword);
 module.exports = router;
