@@ -51,11 +51,16 @@ exports.loginVendor = async (req, res) => {
 
     const token = jwt.sign(
       { id: vendor._id, role: vendor.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "24h" }
+      process.env.JWT_SECRET
     );
 
-    res.json({ authToken: token, role: vendor.role });
+    res.json({
+      authToken: token,
+      role: vendor.role,
+      user: {
+        isProfileCompleted: vendor.isProfileCompleted,
+      },
+    });
   } catch (err) {
     res.status(500).json({ msg: "Server error", error: err.message });
   }
@@ -200,6 +205,7 @@ exports.createVendorProfile = async (req, res) => {
 
     // Handled  file (PDF) via Multer in the middleware
     updateData.idProof = "uploads/" + req.body.uniqueName;
+    updateData.isProfileCompleted = true;
     // Update vendor in DB
     const updatedVendor = await Vendor.findByIdAndUpdate(vendorId, updateData, {
       new: true,

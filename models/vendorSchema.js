@@ -12,6 +12,7 @@ const vendorSchema = new mongoose.Schema(
     }, //done
     password: { type: String, required: true }, //done
     otp: { type: String },
+    isProfileCompleted: { type: Boolean, default: false },
     address: {
       buildingNumber: { type: String, default: "Not Given" },
       locality: { type: String, default: "Not Given" },
