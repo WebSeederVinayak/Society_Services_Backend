@@ -197,6 +197,10 @@ exports.createVendorProfile = async (req, res) => {
       updateData.lastPayments = req.body.lastPayments;
     }
 
+    if (req.idProofFile) {
+      updateData.idProof = req.idProofFile.path;
+    }
+
     // Handle normal string/integer fields
     if (req.body.businessName) updateData.businessName = req.body.businessName;
     if (req.body.experience)
@@ -218,9 +222,10 @@ exports.createVendorProfile = async (req, res) => {
         .json({ success: false, message: "Vendor not found" });
     }
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
-      message: "Vendor profile updated successfully",
+      idProof: req.idProofFile ? { ...req.idProofFile } : "No File Sent",
+      message: "Vendor profile updated successfully!!",
       // data: updatedVendor, // Uncomment if needed for frontend
     });
   } catch (error) {
