@@ -8,12 +8,12 @@ const {
   validateEmail,
   forgetPassword,
 } = require("../controllers/vendor/vendorAuth");
-const { validateOTP } = require("../middlewares/thirdPartyServicesMiddleware");
+const { validateOTP } = require("../middleware/thirdPartyServicesMiddleware");
 const {
   authenticate,
   authorizeRoles,
-} = require("../middlewares/roleBasedAuth");
-const uploadIDProof = require("../middlewares/uploadIDProof");
+} = require("../middleware/roleBasedAuth");
+const uploadIDProof = require("../middleware/uploadIDProof");
 const { signUpNotVerified } = require("../controllers/notVerifiedAuth");
 
 router.post("/signup", signupVendor);

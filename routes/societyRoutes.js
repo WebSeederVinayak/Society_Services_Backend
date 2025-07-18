@@ -7,7 +7,7 @@ const {
 const {
   authenticate,
   authorizeRoles,
-} = require("../middlewares/roleBasedAuth");
+} = require("../middleware/roleBasedAuth");
 router.post("/signup", signupSociety);
 router.post("/login", loginSociety);
 

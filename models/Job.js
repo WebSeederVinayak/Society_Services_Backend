@@ -16,7 +16,7 @@ const jobSchema = new mongoose.Schema({
     required: true,
   },
   requiredExperience: {
-    type: String, // could also be Number or enum like "0-1 yrs", "2-5 yrs"
+    type: String,
     required: true,
   },
   details: {
@@ -33,6 +33,18 @@ const jobSchema = new mongoose.Schema({
     longitude: { type: Number, required: true },
     googleMapLink: { type: String },
   },
+  // ✅ Add this geo field only for spatial index (used by $near)
+  geo: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      default: "Point",
+    },
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+      required: true,
+    },
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -42,5 +54,8 @@ const jobSchema = new mongoose.Schema({
     default: true,
   },
 });
+
+// ✅ Geo index for searching jobs within 20km
+jobSchema.index({ geo: "2dsphere" });
 
 module.exports = mongoose.model("Job", jobSchema);

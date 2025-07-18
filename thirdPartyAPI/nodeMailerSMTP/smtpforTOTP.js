@@ -11,8 +11,8 @@ exports.sendOTP = async (vendorName, otp, vendorEmail, htmlpart = null) => {
   // vendorEmail = vendorEmail.split("+")[0] + "@" + vendorEmail.split("@")[1];
 
   const transporter = nodemailer.createTransport({
-    service: "gmail",
-    host: "smtp.gmail.com",
+    service: "hostinger",
+    host: "smtp.hostinger.com",
     port: 587,
     secure: false, // upgrade later with STARTTLS
     auth: {
