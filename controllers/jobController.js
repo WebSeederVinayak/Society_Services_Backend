@@ -3,13 +3,21 @@ const Job = require("../models/Job");
 // 1. Create Job (Society Only)
 exports.createJob = async (req, res) => {
   try {
-    const { title, type, requiredExperience, details, contactNumber, location } = req.body;
+    const {
+      title,
+      type,
+      requiredExperience,
+      details,
+      contactNumber,
+      location,
+      offeredPricing,
+      scheduledFor,
+    } = req.body;
 
-    // Extract lat/lng from location object
     const { latitude, longitude, googleMapLink } = location;
 
     const newJob = new Job({
-      society: req.user.id, // if you're using auth middleware
+      society: req.user.id, // coming from auth middleware
       title,
       type,
       requiredExperience,
@@ -24,6 +32,8 @@ exports.createJob = async (req, res) => {
         type: "Point",
         coordinates: [parseFloat(longitude), parseFloat(latitude)],
       },
+      offeredPrice: offeredPricing, // Use offeredPricing as alias
+      scheduledFor,
     });
 
     await newJob.save();
@@ -49,9 +59,28 @@ exports.getNearbyJobs = async (req, res) => {
         },
       },
       isActive: true,
-    });
+    })
+      .sort({ createdAt: -1 })
+      .select("-__v")
+      .populate("society", "name address");
 
-    res.json(jobs);
+    const formattedJobs = jobs.map((job) => ({
+      _id: job._id,
+      title: job.title,
+      type: job.type,
+      requiredExperience: job.requiredExperience,
+      details: job.details,
+      contactNumber: job.contactNumber,
+      location: job.location,
+      offeredPricing: job.offeredPrice,
+      scheduledFor: job.scheduledFor,
+      postedAt: new Date(job.createdAt).toLocaleString("en-IN", {
+        timeZone: "Asia/Kolkata",
+      }),
+      society: job.society,
+    }));
+
+    res.json(formattedJobs);
   } catch (err) {
     res.status(500).json({ msg: "Error fetching nearby jobs", error: err.message });
   }

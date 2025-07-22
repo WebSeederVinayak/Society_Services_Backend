@@ -1,3 +1,4 @@
+// ✅ FILE: models/Job.js
 const mongoose = require("mongoose");
 
 const jobSchema = new mongoose.Schema({
@@ -33,7 +34,6 @@ const jobSchema = new mongoose.Schema({
     longitude: { type: Number, required: true },
     googleMapLink: { type: String },
   },
-  // ✅ Add this geo field only for spatial index (used by $near)
   geo: {
     type: {
       type: String,
@@ -41,9 +41,17 @@ const jobSchema = new mongoose.Schema({
       default: "Point",
     },
     coordinates: {
-      type: [Number], // [longitude, latitude]
+      type: [Number],
       required: true,
     },
+  },
+  offeredPrice: {
+    type: Number,
+    required: true,
+  },
+  scheduledFor: {
+    type: Date,
+    required: true,
   },
   createdAt: {
     type: Date,
@@ -55,7 +63,6 @@ const jobSchema = new mongoose.Schema({
   },
 });
 
-// ✅ Geo index for searching jobs within 20km
 jobSchema.index({ geo: "2dsphere" });
 
 module.exports = mongoose.model("Job", jobSchema);

@@ -1,17 +1,29 @@
 const mongoose = require("mongoose");
 
-const applicationSchema = new mongoose.Schema(
-  {
-    job: { type: mongoose.Schema.Types.ObjectId, ref: "Job", required: true },
-    vendor: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor", required: true },
-    message: String,
-    status: {
-      type: String,
-      enum: ["pending", "accepted", "rejected"],
-      default: "pending",
-    },
+const applicationSchema = new mongoose.Schema({
+  vendor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Vendor",
+    required: true,
   },
-  { timestamps: true }
-);
+  job: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Job",
+    required: true,
+  },
+  message: String,
+  offeredPrice: {
+    type: Number,
+    required: true,
+  },
+  status: {
+    type: String,
+    default: "pending", // can be "pending", "accepted", etc.
+  },
+  appliedAt: {
+    type: Date,
+    default: Date.now,
+  },
+});
 
 module.exports = mongoose.model("Application", applicationSchema);
