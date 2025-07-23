@@ -12,12 +12,13 @@ exports.createJob = async (req, res) => {
       location,
       offeredPricing,
       scheduledFor,
+      quotationRequired,
     } = req.body;
 
     const { latitude, longitude, googleMapLink } = location;
 
     const newJob = new Job({
-      society: req.user.id, // coming from auth middleware
+      society: req.user.id, // from auth middleware
       title,
       type,
       requiredExperience,
@@ -32,8 +33,9 @@ exports.createJob = async (req, res) => {
         type: "Point",
         coordinates: [parseFloat(longitude), parseFloat(latitude)],
       },
-      offeredPrice: offeredPricing, // Use offeredPricing as alias
+      offeredPrice: offeredPricing,
       scheduledFor,
+      quotationRequired: quotationRequired || false, // ✅ Keep field name as-is
     });
 
     await newJob.save();
@@ -61,7 +63,7 @@ exports.getNearbyJobs = async (req, res) => {
       isActive: true,
     };
 
-    // Optional quotation filter
+    // ✅ Apply optional filter for quotationRequired if provided
     if (quotationRequired === "true") {
       filter.quotationRequired = true;
     } else if (quotationRequired === "false") {
@@ -78,7 +80,7 @@ exports.getNearbyJobs = async (req, res) => {
       details: job.details,
       contactNumber: job.contactNumber,
       location: job.location,
-      offeredPricing: job.offeredPricing,
+      offeredPricing: job.offeredPrice,
       quotationRequired: job.quotationRequired,
       scheduledFor: job.scheduledFor,
       postedAt: new Date(job.createdAt).toLocaleString("en-IN", {

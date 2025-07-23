@@ -60,11 +60,13 @@ const jobSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true,
-  },
+  },   
   quotationRequired: {
   type: Boolean,
   default: false,
-},
+  required: true,
+}
+
 
 });
 
