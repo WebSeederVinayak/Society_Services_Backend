@@ -46,23 +46,29 @@ exports.createJob = async (req, res) => {
 // 2. Get Jobs Within 20km for Vendors
 exports.getNearbyJobs = async (req, res) => {
   try {
-    const { longitude, latitude } = req.query;
+    const { longitude, latitude, quotationRequired } = req.query;
 
-    const jobs = await Job.find({
+    const filter = {
       geo: {
         $near: {
           $geometry: {
             type: "Point",
             coordinates: [parseFloat(longitude), parseFloat(latitude)],
           },
-          $maxDistance: 20000, // 20km in meters
+          $maxDistance: 20000,
         },
       },
       isActive: true,
-    })
-      .sort({ createdAt: -1 })
-      .select("-__v")
-      .populate("society", "name address");
+    };
+
+    // Optional quotation filter
+    if (quotationRequired === "true") {
+      filter.quotationRequired = true;
+    } else if (quotationRequired === "false") {
+      filter.quotationRequired = false;
+    }
+
+    const jobs = await Job.find(filter);
 
     const formattedJobs = jobs.map((job) => ({
       _id: job._id,
@@ -72,12 +78,12 @@ exports.getNearbyJobs = async (req, res) => {
       details: job.details,
       contactNumber: job.contactNumber,
       location: job.location,
-      offeredPricing: job.offeredPrice,
+      offeredPricing: job.offeredPricing,
+      quotationRequired: job.quotationRequired,
       scheduledFor: job.scheduledFor,
       postedAt: new Date(job.createdAt).toLocaleString("en-IN", {
         timeZone: "Asia/Kolkata",
       }),
-      society: job.society,
     }));
 
     res.json(formattedJobs);

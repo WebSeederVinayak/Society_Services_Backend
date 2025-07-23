@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+
 const {
   loginVendor,
   signupVendor,
@@ -8,14 +9,22 @@ const {
   validateEmail,
   forgetPassword,
 } = require("../controllers/vendor/vendorAuth");
+
+const {
+  purchaseSubscription,
+  checkSubscriptionStatus,
+} = require("../controllers/vendor/subscriptionController");
+
 const { validateOTP } = require("../middleware/thirdPartyServicesMiddleware");
 const {
   authenticate,
   authorizeRoles,
 } = require("../middleware/roleBasedAuth");
+
 const uploadIDProof = require("../middleware/uploadIDProof");
 const { signUpNotVerified } = require("../controllers/notVerifiedAuth");
 
+// 🔐 Auth & Profile
 router.post("/signup", signupVendor);
 router.post("/login", loginVendor);
 
@@ -27,9 +36,24 @@ router.put(
   createVendorProfile
 );
 
+// 📧 OTP & Email
 router.post("/sendOtpEmailVerification", signUpNotVerified, sendValidationOTP);
 router.post("/sendOTP", sendValidationOTP);
-
 router.post("/validateEmail", validateOTP, validateEmail);
 router.post("/forgetPassword", validateOTP, forgetPassword);
+
+// 💳 Subscription APIs
+router.post(
+  "/subscribe",
+  authenticate,
+  authorizeRoles("vendor"),
+  purchaseSubscription
+);
+router.get(
+  "/subscription-status",
+  authenticate,
+  authorizeRoles("vendor"),
+  checkSubscriptionStatus
+);
+
 module.exports = router;

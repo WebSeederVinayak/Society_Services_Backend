@@ -8,13 +8,21 @@ const adminRoutes = require("./routes/adminRoutes");
 const vendorRoutes = require("./routes/vendorRoutes");
 const societyRoutes = require("./routes/societyRoutes");
 
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5003;
 
+
 // Middleware
 app.use(express.json());
+
+const swaggerUi = require("swagger-ui-express");
+const swaggerSpec = require("./swaggerOptions");
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 
 // Test root
 app.get("/", (req, res) => {

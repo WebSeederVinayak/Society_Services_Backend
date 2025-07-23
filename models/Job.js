@@ -61,6 +61,11 @@ const jobSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
+  quotationRequired: {
+  type: Boolean,
+  default: false,
+},
+
 });
 
 jobSchema.index({ geo: "2dsphere" });

@@ -5,12 +5,14 @@ const Vendor = require("../models/vendorSchema");
 // 3. Vendor Applies to a Job (With Quotation or Direct Apply)
 exports.applyToJob = async (req, res) => {
   try {
+    const {
+      message,
+      applicationType,
+      quotedPrice,
+      estimatedTime,
+      additionalNotes,
+    } = req.body;
     const jobId = req.params.id;
-    const { message, applicationType, quotedPrice, estimatedTime, additionalNotes } = req.body;
-
-    if (!applicationType || !["direct", "quotation"].includes(applicationType)) {
-      return res.status(400).json({ msg: "applicationType must be either 'direct' or 'quotation'" });
-    }
 
     const existing = await Application.findOne({ job: jobId, vendor: req.user.id });
     if (existing)
@@ -19,11 +21,10 @@ exports.applyToJob = async (req, res) => {
     const application = new Application({
       job: jobId,
       vendor: req.user.id,
-      applicationType,
       message,
+      applicationType,
     });
 
-    // Attach quotation details only if it's a quotation type
     if (applicationType === "quotation") {
       application.quotedPrice = quotedPrice;
       application.estimatedTime = estimatedTime;
