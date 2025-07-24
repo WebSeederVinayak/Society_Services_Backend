@@ -36,14 +36,13 @@ router.put(
   createVendorProfile
 );
 
-// 📧 OTP & Email
+// 📧 OTP & Email Verification
 router.post("/sendOtpEmailVerification", signUpNotVerified, sendValidationOTP);
 router.post("/sendOTP", sendValidationOTP);
 router.post("/validateEmail", validateOTP, validateEmail);
 router.post("/forgetPassword", validateOTP, forgetPassword);
 
-// 💳 Subscription APIs
-// This simulates a payment and starts the 1-year subscription
+// 💳 Subscription (No payment gateway yet)
 router.post(
   "/subscribe",
   authenticate,

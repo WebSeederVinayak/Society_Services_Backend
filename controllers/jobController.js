@@ -46,9 +46,12 @@ exports.createJob = async (req, res) => {
 };
 
 // 2. Get Jobs Within 20km for Vendors
+const Application = require("../models/Application");
+
 exports.getNearbyJobs = async (req, res) => {
   try {
     const { longitude, latitude, quotationRequired } = req.query;
+    const vendorId = req.user.id; // from authMiddleware
 
     const filter = {
       geo: {
@@ -60,10 +63,9 @@ exports.getNearbyJobs = async (req, res) => {
           $maxDistance: 20000,
         },
       },
-      isActive: true,
     };
 
-    // ✅ Apply optional filter for quotationRequired if provided
+    // Optional filter for quotationRequired
     if (quotationRequired === "true") {
       filter.quotationRequired = true;
     } else if (quotationRequired === "false") {
@@ -71,6 +73,19 @@ exports.getNearbyJobs = async (req, res) => {
     }
 
     const jobs = await Job.find(filter);
+
+    const jobIds = jobs.map((job) => job._id);
+
+    // Find all applications by this vendor for the nearby jobs
+    const vendorApplications = await Application.find({
+      vendor: vendorId,
+      job: { $in: jobIds },
+    }).select("job status");
+
+    const statusMap = {};
+    vendorApplications.forEach((app) => {
+      statusMap[app.job.toString()] = app.status;
+    });
 
     const formattedJobs = jobs.map((job) => ({
       _id: job._id,
@@ -86,6 +101,8 @@ exports.getNearbyJobs = async (req, res) => {
       postedAt: new Date(job.createdAt).toLocaleString("en-IN", {
         timeZone: "Asia/Kolkata",
       }),
+      // ✅ NEW: Application status if vendor applied
+      applicationStatus: statusMap[job._id.toString()] || null,
     }));
 
     res.json(formattedJobs);

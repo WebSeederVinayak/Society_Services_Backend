@@ -3,24 +3,16 @@ const Subscription = require("../../models/Subscription");
 exports.purchaseSubscription = async (req, res) => {
   const vendorId = req.user.id;
   const price = 999;
-  const { paymentConfirmation } = req.body;
-
-  // 💳 Simulate a payment step
-  if (!paymentConfirmation) {
-    return res.status(400).json({
-      message: "Payment not confirmed. Cannot activate subscription."
-    });
-  }
 
   const startDate = new Date();
   const endDate = new Date(startDate);
   endDate.setFullYear(endDate.getFullYear() + 1);
 
   try {
-    // 🧼 Mark all previous subscriptions as inactive
+    // Mark all previous subscriptions as inactive
     await Subscription.updateMany({ vendor: vendorId }, { isActive: false });
 
-    // ✅ Create new subscription
+    // Create new subscription
     const newSubscription = await Subscription.create({
       vendor: vendorId,
       price,
@@ -38,6 +30,7 @@ exports.purchaseSubscription = async (req, res) => {
   }
 };
 
+// ✅ Add this missing export
 exports.checkSubscriptionStatus = async (req, res) => {
   try {
     const subscription = await Subscription.findOne({
