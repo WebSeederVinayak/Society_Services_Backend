@@ -1,4 +1,3 @@
-// ✅ FILE: models/Job.js
 const mongoose = require("mongoose");
 
 const jobSchema = new mongoose.Schema({
@@ -57,17 +56,11 @@ const jobSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  isActive: {
-    type: Boolean,
-    default: true,
-  },   
   quotationRequired: {
-  type: Boolean,
-  default: false,
-  required: true,
-}
-
-
+    type: Boolean,
+    default: false,
+    required: true,
+  }
 });
 
 jobSchema.index({ geo: "2dsphere" });

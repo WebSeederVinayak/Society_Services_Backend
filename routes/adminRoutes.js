@@ -2,9 +2,10 @@ const express = require("express");
 const router = express.Router();
 
 const { signupAdmin, loginAdmin } = require("../controllers/admin/adminAuth");
+
 const {
-  setSubscriptionPrice,
-  getSubscriptionPrice
+  getAllSubscriptions,
+  getVendorSubscriptionHistory
 } = require("../controllers/admin/subscriptionController");
 
 const { authenticate, authorizeRoles } = require("../middleware/roleBasedAuth");
@@ -13,19 +14,19 @@ const { authenticate, authorizeRoles } = require("../middleware/roleBasedAuth");
 router.post("/signup", signupAdmin);
 router.post("/login", loginAdmin);
 
-// 💸 Subscription Pricing Management
-router.post(
-  "/set-subscription-price",
+// 📜 Subscription History Access
+router.get(
+  "/all-subscriptions",
   authenticate,
   authorizeRoles("admin"),
-  setSubscriptionPrice
+  getAllSubscriptions
 );
 
 router.get(
-  "/subscription-price",
+  "/vendor-subscription-history/:vendorId",
   authenticate,
   authorizeRoles("admin"),
-  getSubscriptionPrice
+  getVendorSubscriptionHistory
 );
 
 module.exports = router;

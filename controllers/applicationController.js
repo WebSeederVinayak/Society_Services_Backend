@@ -23,6 +23,7 @@ exports.applyToJob = async (req, res) => {
       vendor: req.user.id,
       message,
       applicationType,
+      status: "applied", // ✅ explicitly set
     });
 
     if (applicationType === "quotation") {
@@ -56,5 +57,26 @@ exports.getJobApplicants = async (req, res) => {
     res.json(applications);
   } catch (err) {
     res.status(500).json({ msg: "Failed to get applicants", error: err.message });
+  }
+};
+
+// ✅ Get all applications for logged-in vendor by status
+exports.getApplicationsByStatus = async (req, res) => {
+  const { status } = req.params;
+  const validStatuses = ["applied", "ongoing", "completed", "approved"];
+
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ msg: "Invalid status filter" });
+  }
+
+  try {
+    const applications = await Application.find({
+      vendor: req.user.id,
+      status,
+    }).populate("job");
+
+    res.status(200).json({ applications });
+  } catch (err) {
+    res.status(500).json({ msg: "Failed to fetch applications", error: err.message });
   }
 };

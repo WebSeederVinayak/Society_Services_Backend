@@ -12,7 +12,7 @@ const {
 
 const {
   purchaseSubscription,
-  checkSubscriptionStatus,
+  checkSubscriptionStatus
 } = require("../controllers/vendor/subscriptionController");
 
 const { validateOTP } = require("../middleware/thirdPartyServicesMiddleware");
@@ -43,12 +43,14 @@ router.post("/validateEmail", validateOTP, validateEmail);
 router.post("/forgetPassword", validateOTP, forgetPassword);
 
 // 💳 Subscription APIs
+// This simulates a payment and starts the 1-year subscription
 router.post(
   "/subscribe",
   authenticate,
   authorizeRoles("vendor"),
   purchaseSubscription
 );
+
 router.get(
   "/subscription-status",
   authenticate,

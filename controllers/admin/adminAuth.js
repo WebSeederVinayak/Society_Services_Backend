@@ -4,14 +4,14 @@ const jwt = require("jsonwebtoken");
 
 exports.signupAdmin = async (req, res) => {
   try {
-    const { username, email, password, gender, department, subrole } = req.body;
+    const { name, email, password, gender, department, subrole } = req.body;
 
     const existing = await Admin.findOne({ email });
     if (existing) return res.status(400).json({ msg: "Admin already exists" });
 
     const hashed = await bcrypt.hash(password, 10);
     const newAdmin = new Admin({
-      username,
+      name,
       email,
       password: hashed,
       gender,

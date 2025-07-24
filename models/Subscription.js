@@ -1,4 +1,3 @@
-// models/Subscription.js
 const mongoose = require("mongoose");
 
 const subscriptionSchema = new mongoose.Schema({
@@ -6,11 +5,10 @@ const subscriptionSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Vendor",
     required: true,
-    unique: true,
   },
   price: {
     type: Number,
-    required: true,
+    default: 999,
   },
   startDate: {
     type: Date,

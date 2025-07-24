@@ -16,7 +16,8 @@ const applicationSchema = new mongoose.Schema({
     enum: ["direct", "quotation"],
     required: true,
   },
-  // These fields are only used if type === quotation
+
+  // Used only for quotation type
   quotedPrice: {
     type: Number,
   },
@@ -28,7 +29,7 @@ const applicationSchema = new mongoose.Schema({
     type: String,
   },
 
-  // ✅ Added new format for compatibility with existing system
+  // Quotation object
   isQuotation: {
     type: Boolean,
     default: false,
@@ -37,6 +38,13 @@ const applicationSchema = new mongoose.Schema({
     estimatedPrice: { type: Number },
     estimatedTime: { type: String },
     vendorNotes: { type: String },
+  },
+
+  // ✅ NEW: Status of application
+  status: {
+    type: String,
+    enum: ["applied", "ongoing", "completed", "approved"],
+    default: "applied",
   },
 
   createdAt: {

@@ -1,51 +1,62 @@
-// controllers/vendor/subscriptionController.js
 const Subscription = require("../../models/Subscription");
-const { getCurrentPriceValue } = require("../admin/subscriptionController");
 
 exports.purchaseSubscription = async (req, res) => {
   const vendorId = req.user.id;
-  const price = getCurrentPriceValue();
+  const price = 999;
+  const { paymentConfirmation } = req.body;
+
+  // 💳 Simulate a payment step
+  if (!paymentConfirmation) {
+    return res.status(400).json({
+      message: "Payment not confirmed. Cannot activate subscription."
+    });
+  }
 
   const startDate = new Date();
   const endDate = new Date(startDate);
   endDate.setFullYear(endDate.getFullYear() + 1);
 
   try {
-    let subscription = await Subscription.findOne({ vendor: vendorId });
+    // 🧼 Mark all previous subscriptions as inactive
+    await Subscription.updateMany({ vendor: vendorId }, { isActive: false });
 
-    if (subscription) {
-      subscription.startDate = startDate;
-      subscription.endDate = endDate;
-      subscription.price = price;
-      subscription.isActive = true;
-      await subscription.save();
-    } else {
-      subscription = await Subscription.create({
-        vendor: vendorId,
-        price,
-        startDate,
-        endDate,
-      });
-    }
+    // ✅ Create new subscription
+    const newSubscription = await Subscription.create({
+      vendor: vendorId,
+      price,
+      startDate,
+      endDate,
+      isActive: true
+    });
 
-    res.status(200).json({
-      message: "Subscription active",
-      subscription,
+    res.status(201).json({
+      message: "Subscription successfully activated for 1 year.",
+      subscription: newSubscription
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: "Error", error: err.message });
   }
 };
 
 exports.checkSubscriptionStatus = async (req, res) => {
   try {
-    const subscription = await Subscription.findOne({ vendor: req.user.id });
-    if (!subscription) return res.status(404).json({ isActive: false });
+    const subscription = await Subscription.findOne({
+      vendor: req.user.id,
+      isActive: true
+    });
+
+    if (!subscription) {
+      return res.status(200).json({ isActive: false });
+    }
 
     const now = new Date();
-    const isActive = now <= subscription.endDate;
-    res.status(200).json({ isActive, expiresOn: subscription.endDate });
+    const isStillValid = now <= subscription.endDate;
+
+    res.status(200).json({
+      isActive: isStillValid,
+      expiresOn: subscription.endDate
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: "Error", error: err.message });
   }
 };

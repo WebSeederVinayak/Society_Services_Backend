@@ -1,16 +1,27 @@
-// controllers/admin/subscriptionController.js
-let currentPrice = 0;
+const Subscription = require("../../models/Subscription");
+const Vendor = require("../../models/vendorSchema");
 
-exports.setSubscriptionPrice = (req, res) => {
-  const { price } = req.body;
-  if (!price) return res.status(400).json({ message: "Price is required" });
+// ✅ Admin: Get all subscriptions (from all vendors)
+exports.getAllSubscriptions = async (req, res) => {
+  try {
+    const subscriptions = await Subscription.find({})
+      .populate("vendor", "name email phone")
+      .sort({ createdAt: -1 });
 
-  currentPrice = price;
-  res.status(200).json({ message: "Price updated", price });
+    res.status(200).json({ subscriptions });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch subscriptions", error: err.message });
+  }
 };
 
-exports.getSubscriptionPrice = (req, res) => {
-  res.status(200).json({ price: currentPrice });
-};
+// ✅ Admin: Get one vendor's full history
+exports.getVendorSubscriptionHistory = async (req, res) => {
+  try {
+    const vendorId = req.params.vendorId;
+    const history = await Subscription.find({ vendor: vendorId }).sort({ startDate: -1 });
 
-exports.getCurrentPriceValue = () => currentPrice;
+    res.status(200).json({ history });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch vendor history", error: err.message });
+  }
+};
