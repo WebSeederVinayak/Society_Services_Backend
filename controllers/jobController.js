@@ -1,4 +1,5 @@
 const Job = require("../models/Job");
+const Application = require("../models/Application");
 
 // 1. Create Job (Society Only)
 exports.createJob = async (req, res) => {
@@ -35,19 +36,24 @@ exports.createJob = async (req, res) => {
       },
       offeredPrice: offeredPricing,
       scheduledFor,
-      quotationRequired: quotationRequired || false, // ✅ Keep field name as-is
+      quotationRequired: quotationRequired || false,
+      // ✅ status: "New" is set by default in schema
     });
 
     await newJob.save();
-    res.status(201).json({ msg: "Job posted successfully", job: newJob });
+    res.status(201).json({
+      msg: "Job posted successfully",
+      job: {
+        ...newJob.toObject(),
+        status: "New" // ✅ explicitly show in response
+      }
+    });
   } catch (err) {
     res.status(500).json({ msg: "Failed to post job", error: err.message });
   }
 };
 
 // 2. Get Jobs Within 20km for Vendors
-const Application = require("../models/Application");
-
 exports.getNearbyJobs = async (req, res) => {
   try {
     const { longitude, latitude, quotationRequired } = req.query;
@@ -63,9 +69,9 @@ exports.getNearbyJobs = async (req, res) => {
           $maxDistance: 20000,
         },
       },
+      isActive: true,
     };
 
-    // Optional filter for quotationRequired
     if (quotationRequired === "true") {
       filter.quotationRequired = true;
     } else if (quotationRequired === "false") {
@@ -76,7 +82,6 @@ exports.getNearbyJobs = async (req, res) => {
 
     const jobIds = jobs.map((job) => job._id);
 
-    // Find all applications by this vendor for the nearby jobs
     const vendorApplications = await Application.find({
       vendor: vendorId,
       job: { $in: jobIds },
@@ -98,11 +103,11 @@ exports.getNearbyJobs = async (req, res) => {
       offeredPricing: job.offeredPrice,
       quotationRequired: job.quotationRequired,
       scheduledFor: job.scheduledFor,
+      status: job.status, // ✅ society-defined status
+      applicationStatus: statusMap[job._id.toString()] || null,
       postedAt: new Date(job.createdAt).toLocaleString("en-IN", {
         timeZone: "Asia/Kolkata",
       }),
-      // ✅ NEW: Application status if vendor applied
-      applicationStatus: statusMap[job._id.toString()] || null,
     }));
 
     res.json(formattedJobs);

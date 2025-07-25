@@ -18,12 +18,15 @@ exports.applyToJob = async (req, res) => {
     if (existing)
       return res.status(400).json({ msg: "Already applied to this job" });
 
+    const job = await Job.findById(jobId);
+    if (!job) return res.status(404).json({ msg: "Job not found" });
+
     const application = new Application({
       job: jobId,
       vendor: req.user.id,
       message,
       applicationType,
-      status: "applied", // ✅ explicitly set
+      status: "approval pending",
     });
 
     if (applicationType === "quotation") {
@@ -31,6 +34,10 @@ exports.applyToJob = async (req, res) => {
       application.estimatedTime = estimatedTime;
       application.additionalNotes = additionalNotes;
     }
+
+    // Update job status to "Applied"
+    job.status = "Applied";
+    await job.save();
 
     await application.save();
     res.status(201).json({ msg: "Application submitted", application });
@@ -60,23 +67,46 @@ exports.getJobApplicants = async (req, res) => {
   }
 };
 
-// ✅ Get all applications for logged-in vendor by status
-exports.getApplicationsByStatus = async (req, res) => {
-  const { status } = req.params;
-  const validStatuses = ["applied", "ongoing", "completed", "approved"];
-
-  if (!validStatuses.includes(status)) {
-    return res.status(400).json({ msg: "Invalid status filter" });
-  }
-
+// 5. Society approves an application and job becomes ongoing
+exports.approveApplication = async (req, res) => {
   try {
-    const applications = await Application.find({
-      vendor: req.user.id,
-      status,
-    }).populate("job");
+    const { applicationId } = req.params;
 
-    res.status(200).json({ applications });
+    const application = await Application.findById(applicationId).populate("job");
+    if (!application) return res.status(404).json({ msg: "Application not found" });
+
+    if (application.job.society.toString() !== req.user.id) {
+      return res.status(403).json({ msg: "Unauthorized" });
+    }
+
+    application.status = "approved";
+    await application.save();
+
+    application.job.status = "Ongoing";
+    await application.job.save();
+
+    res.json({ msg: "Application approved. Job is now Ongoing", application });
   } catch (err) {
-    res.status(500).json({ msg: "Failed to fetch applications", error: err.message });
+    res.status(500).json({ msg: "Error approving application", error: err.message });
+  }
+};
+
+// 6. Society marks a job as completed
+exports.markJobComplete = async (req, res) => {
+  try {
+    const { jobId } = req.params;
+
+    const job = await Job.findById(jobId);
+    if (!job) return res.status(404).json({ msg: "Job not found" });
+
+    if (job.society.toString() !== req.user.id)
+      return res.status(403).json({ msg: "Unauthorized" });
+
+    job.status = "Completed";
+    await job.save();
+
+    res.json({ msg: "Job marked as Completed" });
+  } catch (err) {
+    res.status(500).json({ msg: "Error updating job", error: err.message });
   }
 };

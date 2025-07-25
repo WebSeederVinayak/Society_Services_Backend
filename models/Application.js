@@ -11,13 +11,14 @@ const applicationSchema = new mongoose.Schema({
     ref: "Vendor",
     required: true,
   },
+  message: {
+    type: String,
+  },
   applicationType: {
     type: String,
     enum: ["direct", "quotation"],
     required: true,
   },
-
-  // Used only for quotation type
   quotedPrice: {
     type: Number,
   },
@@ -28,25 +29,11 @@ const applicationSchema = new mongoose.Schema({
   additionalNotes: {
     type: String,
   },
-
-  // Quotation object
-  isQuotation: {
-    type: Boolean,
-    default: false,
-  },
-  quotation: {
-    estimatedPrice: { type: Number },
-    estimatedTime: { type: String },
-    vendorNotes: { type: String },
-  },
-
-  // ✅ NEW: Status of application
   status: {
     type: String,
-    enum: ["applied", "ongoing", "completed", "approved"],
-    default: "applied",
+    enum: ["approval_pending", "approved", "rejected", "completed"],
+    default: "approval_pending",
   },
-
   createdAt: {
     type: Date,
     default: Date.now,

@@ -60,7 +60,13 @@ const jobSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
     required: true,
-  }
+  }, 
+  status: {
+  type: String,
+  enum: ["New", "Applied", "Ongoing", "Completed"],
+  default: "New",
+}
+
 });
 
 jobSchema.index({ geo: "2dsphere" });
