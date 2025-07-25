@@ -20,17 +20,9 @@ const allowedOrigins = [
   "https://social-services-app.vercel.app",
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin like mobile apps or curl
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true, // Allow cookies/auth headers
-}));
+app.use(
+  cors({ origin: "*", methods: "*", allowedHeaders: "*", credentials: true })
+);
 
 // Middleware
 app.use(express.json());
