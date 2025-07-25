@@ -37,6 +37,7 @@ exports.createJob = async (req, res) => {
       offeredPrice: offeredPricing,
       scheduledFor,
       quotationRequired: quotationRequired || false,
+      isActive: true,
       // ✅ status: "New" is set by default in schema
     });
 

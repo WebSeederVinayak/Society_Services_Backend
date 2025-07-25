@@ -35,9 +35,11 @@ exports.applyToJob = async (req, res) => {
       application.additionalNotes = additionalNotes;
     }
 
-    // Update job status to "Applied"
-    job.status = "Applied";
-    await job.save();
+    // Update job status to "Applied" only if not already set to Ongoing or Completed
+    if (job.status === "New") {
+      job.status = "Applied";
+      await job.save();
+    }
 
     await application.save();
     res.status(201).json({ msg: "Application submitted", application });
@@ -82,8 +84,9 @@ exports.approveApplication = async (req, res) => {
     application.status = "approved";
     await application.save();
 
-    application.job.status = "Ongoing";
-    await application.job.save();
+    const job = await Job.findById(application.job._id);
+    job.status = "Ongoing";
+    await job.save();
 
     res.json({ msg: "Application approved. Job is now Ongoing", application });
   } catch (err) {
