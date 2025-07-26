@@ -19,6 +19,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://social-services-app.vercel.app",
   "https://social-services-app.vercel.app",
+  "https://delightful-pastelito-988e6f.netlify.app?",
 ];
 
 app.use(
