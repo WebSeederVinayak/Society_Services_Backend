@@ -18,6 +18,7 @@ const PORT = process.env.PORT || 5003;
 const allowedOrigins = [
   "http://localhost:5173",
   "https://social-services-app.vercel.app",
+  "https://social-services-app.vercel.app",
 ];
 
 app.use(
