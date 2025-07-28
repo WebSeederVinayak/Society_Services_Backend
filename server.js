@@ -19,13 +19,15 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://social-services-app.vercel.app",
   "https://social-services-app.vercel.app",
-  "https://delightful-pastelito-988e6f.netlify.app?",
+  "https://delightful-pastelito-988e6f.netlify.app",
 ];
 
 app.use(
   cors({
-    origin: "*",
+    origin: process.env.CLIENT_URI,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS','PATCH'], // Allowed HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization','authToken'] // Allowed headers
   })
 );
 
