@@ -22,7 +22,7 @@ exports.sendOTP = async (vendorName, otp, vendorEmail, htmlpart = null) => {
   });
   const mailOptions = {
     from: {
-      name: "Shivam Dixit",
+      name: "Vinayak Sharma",
       address: process.env.SMTP_USER,
     }, // Header From:
     to: [vendorEmail],
