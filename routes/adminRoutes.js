@@ -11,9 +11,18 @@ const {
 
 const { authenticate, authorizeRoles } = require("../middleware/roleBasedAuth");
 
+const { getVendorsGroupedByRole } = require("../controllers/admin/vendorController");
+
 // 🧑‍💼 Admin Auth
 router.post("/signup", signupAdmin);
 router.post("/login", loginAdmin);
+
+router.get(
+  "/vendors-by-role",
+  authenticate,
+  authorizeRoles("admin"),
+  getVendorsGroupedByRole
+);
 
 // 📜 Subscription History Access
 router.get(
@@ -36,5 +45,6 @@ router.patch(
   authorizeRoles("admin"),
   cancelSubscription
 );
+
 
 module.exports = router;

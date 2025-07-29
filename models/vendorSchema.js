@@ -1,18 +1,20 @@
 const mongoose = require("mongoose");
+const predefinedRoles = require("../constants/vendorRoles"); // 🔥 NEW
 
 const vendorSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true }, //done
-    businessName: { type: String, default: "Not Given" }, //done
-    profilePicture: { type: String, default: "AWSDefaultVendor.jpg" }, //done
+    name: { type: String, required: true },
+    businessName: { type: String, default: "Not Given" },
+    profilePicture: { type: String, default: "AWSDefaultVendor.jpg" },
     email: {
       type: String,
       required: true,
       unique: true,
-    }, //done
-    password: { type: String, required: true }, //done
+    },
+    password: { type: String, required: true },
     otp: { type: String },
     isProfileCompleted: { type: Boolean, default: false },
+
     address: {
       buildingNumber: { type: String, default: "Not Given" },
       locality: { type: String, default: "Not Given" },
@@ -25,6 +27,7 @@ const vendorSchema = new mongoose.Schema(
     idProof: {
       type: String,
     },
+
     workingDays: {
       monday: { type: Boolean, default: false },
       tuesday: { type: Boolean, default: false },
@@ -34,18 +37,28 @@ const vendorSchema = new mongoose.Schema(
       saturday: { type: Boolean, default: false },
       sunday: { type: Boolean, default: false },
     },
+
     workingHours: {
       from: { type: String, default: "09:00" },
-      upto: { type: String, default: "18:00" }, // I have used 24 hours format
+      upto: { type: String, default: "18:00" },
     },
+
     experience: {
       type: Number,
       default: 0,
     },
+
     phone: { type: String, default: "Not Given" },
 
-    // quotation:{ }, // Need to discuss with sir regarding quatation type boolean or number or is quation by vendor or for job
-    services: [{ type: String }],
+    // 🔧 Restricting services to predefined roles
+    services: [
+      {
+        type: String,
+        enum: predefinedRoles,
+        required: true,
+      }
+    ],
+
     location: {
       GeoLocation: {
         latitude: { type: Number, default: 0 },
@@ -56,10 +69,11 @@ const vendorSchema = new mongoose.Schema(
         default: "Not Given",
       },
     },
+
     paymentMethods: {
       UPI: {
         uPIID: { type: String, default: "Not Given" },
-        uPIApp: { type: String, default: "Not Given" }, // e.g. Google Pay, PhonePe, etc.
+        uPIApp: { type: String, default: "Not Given" },
       },
       Card: {
         cardType: {
@@ -70,9 +84,10 @@ const vendorSchema = new mongoose.Schema(
         cardNumber: { type: String, default: "Not Given" },
         cardHolderName: { type: String, default: "Not Given" },
         cardExpiry: { type: Date, default: null },
-        cardCVV: { type: String, default: "Not Given" }, // CVV is usually 3 digits
+        cardCVV: { type: String, default: "Not Given" },
       },
     },
+
     lastPayments: [
       {
         paymentDate: { type: Date, default: Date.now },
@@ -81,7 +96,7 @@ const vendorSchema = new mongoose.Schema(
           type: String,
           enum: ["UPI", "Credit", "Debit"],
           default: "UPI",
-        }, // UPI or Card
+        },
         transactionId: { type: String, default: "Not Given" },
         paymentReason: {
           type: String,
@@ -94,11 +109,13 @@ const vendorSchema = new mongoose.Schema(
         },
       },
     ],
+
     role: {
       type: String,
       default: "vendor",
       immutable: true,
     },
+
     jobHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: "Job" }],
 
     subscription: {
