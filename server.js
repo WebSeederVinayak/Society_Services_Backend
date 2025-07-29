@@ -1,13 +1,15 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
-const cors = require("cors"); // ✅ Added cors
+const cors = require("cors");
+const swaggerUi = require("swagger-ui-express");
 
 const jobRoutes = require("./routes/jobRoutes");
 const applicationRoutes = require("./routes/applicationRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const vendorRoutes = require("./routes/vendorRoutes");
 const societyRoutes = require("./routes/societyRoutes");
+const swaggerSpec = require("./swaggerOptions");
 
 dotenv.config();
 
@@ -18,7 +20,6 @@ const PORT = process.env.PORT || 5003;
 const allowedOrigins = [
   "http://localhost:5173",
   "https://social-services-app.vercel.app",
-  "https://social-services-app.vercel.app",
   "https://delightful-pastelito-988e6f.netlify.app",
 ];
 
@@ -26,33 +27,31 @@ app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS','PATCH'], // Allowed HTTP methods
-    allowedHeaders: ['Content-Type', 'Authorization','authToken'] // Allowed headers
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'authToken'],
   })
 );
 
-// Middleware
-app.use(express.json());
+// ✅ Body Parsing Middleware
+app.use(express.json({ limit: "10mb" })); // For base64-encoded images
+app.use(express.urlencoded({ extended: true })); // Handles form-urlencoded if needed
 
-// Swagger API docs
-const swaggerUi = require("swagger-ui-express");
-const swaggerSpec = require("./swaggerOptions");
+// ✅ Swagger API docs
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-// Root route
+// ✅ Root Health Check
 app.get("/", (req, res) => {
   res.send("Welcome to Velnor API");
 });
 
-// Routes
+// ✅ Routes
 app.use("/api/admin", adminRoutes);
 app.use("/api/vendor", vendorRoutes);
 app.use("/api/society", societyRoutes);
-app.use("/api/jobs", jobRoutes);               // POST /api/jobs/create, GET /api/jobs/nearby
-app.use("/api/applications", applicationRoutes); // POST /api/applications/:id/apply
+app.use("/api/jobs", jobRoutes);               // e.g. POST /api/jobs/create, GET /api/jobs/nearby
+app.use("/api/applications", applicationRoutes); // e.g. POST /api/applications/:id/apply
 
-// Connect to MongoDB
+// ✅ MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {

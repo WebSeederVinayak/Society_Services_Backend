@@ -6,7 +6,11 @@ const subscriptionSchema = new mongoose.Schema({
     ref: "Vendor",
     required: true,
   },
-  price: {
+  vendorName: {
+    type: String,
+    required: true,
+  },
+  planPrice: {
     type: Number,
     default: 999,
   },
@@ -17,6 +21,16 @@ const subscriptionSchema = new mongoose.Schema({
   endDate: {
     type: Date,
     required: true,
+  },
+  paymentStatus: {
+    type: String,
+    enum: ["Pending", "Paid", "Failed"],
+    default: "Pending",
+  },
+  subscriptionStatus: {
+    type: String,
+    enum: ["Active", "Expired", "Cancelled"],
+    default: "Active",
   },
   isActive: {
     type: Boolean,

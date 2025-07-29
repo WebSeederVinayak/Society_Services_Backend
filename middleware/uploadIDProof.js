@@ -1,20 +1,3 @@
-// const multer = require("multer");
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, "uploads/"); // fileSacing folder anme where files will be saved
-//   },
-//   filename: (req, file, cb) => {
-//     const uniqueName = Date.now() + "-" + file.originalname; // To prevent the conflict as i hve faced it during AWS
-//     req.body.uniqueName = uniqueName; // Store the unique name in req.file for later use
-//     cb(null, uniqueName);
-//   },
-// });
-
-// Multer instance
-// const upload = multer({ storage });
-
-// module.exports = upload.single("idProof");
-// {The above code is for multipart formdata now i am taking base64 image string so make parsing it and saving in uploads folder}
 const fs = require("fs");
 const path = require("path");
 
@@ -25,26 +8,31 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 const uploadIdProof = (req, res, next) => {
-  const { idProof } = req.body;
+  // Safely access req.body
+  const idProof = req.body?.idProof;
+
+  // If idProof not present, continue to next middleware (no upload)
   if (!idProof) {
-    next();
-    return;
+    return next();
   }
-  // Validate input
-  if (!idProof || !idProof.imageBase64 || !idProof.name) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Missing idProof, base64 or name" });
+
+  // Validate presence of imageBase64 and name
+  if (!idProof.imageBase64 || !idProof.name) {
+    return res.status(400).json({
+      success: false,
+      message: "Missing idProof, base64 or name",
+    });
   }
 
   const { imageBase64, name } = idProof;
 
-  // Match base64 string and extract info
+  // Match and extract MIME type and base64 content
   const match = imageBase64.match(/^data:(.+);base64,(.+)$/);
   if (!match) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Invalid base64 format" });
+    return res.status(400).json({
+      success: false,
+      message: "Invalid base64 format",
+    });
   }
 
   const mimeType = match[1]; // e.g., image/jpeg
@@ -57,12 +45,13 @@ const uploadIdProof = (req, res, next) => {
   fs.writeFile(filePath, base64Data, "base64", (err) => {
     if (err) {
       console.error("Error saving image:", err);
-      return res
-        .status(500)
-        .json({ success: false, message: "Failed to save image" });
+      return res.status(500).json({
+        success: false,
+        message: "Failed to save image",
+      });
     }
 
-    // Attach file info to req for access in next middleware
+    // Attach file info to request for later usage
     req.idProofFile = {
       filename: fileName,
       path: `/uploads/${fileName}`,
@@ -70,7 +59,7 @@ const uploadIdProof = (req, res, next) => {
       mimeType,
     };
 
-    next(); // Call next middleware
+    next();
   });
 };
 

@@ -181,10 +181,6 @@ exports.createVendorProfile = async (req, res) => {
       updateData.workingHours = req.body.workingHours;
     }
 
-    if (req.body.payScale) {
-      updateData.payScale = req.body.payScale;
-    }
-
     if (req.body.location) {
       updateData.location = req.body.location;
     }

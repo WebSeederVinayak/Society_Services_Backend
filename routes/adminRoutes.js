@@ -5,7 +5,8 @@ const { signupAdmin, loginAdmin } = require("../controllers/admin/adminAuth");
 
 const {
   getAllSubscriptions,
-  getVendorSubscriptionHistory
+  getVendorSubscriptionHistory,
+  cancelSubscription  // <-- ✅ Add this here
 } = require("../controllers/admin/subscriptionController");
 
 const { authenticate, authorizeRoles } = require("../middleware/roleBasedAuth");
@@ -27,6 +28,13 @@ router.get(
   authenticate,
   authorizeRoles("admin"),
   getVendorSubscriptionHistory
+);
+
+router.patch(
+  "/cancel-subscription/:subscriptionId",
+  authenticate,
+  authorizeRoles("admin"),
+  cancelSubscription
 );
 
 module.exports = router;

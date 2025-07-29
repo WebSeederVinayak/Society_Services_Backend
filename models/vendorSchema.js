@@ -44,10 +44,6 @@ const vendorSchema = new mongoose.Schema(
     },
     phone: { type: String, default: "Not Given" },
 
-    payScale: {
-      from: { type: Number, default: 0 },
-      upto: { type: Number, default: 0 },
-    },
     // quotation:{ }, // Need to discuss with sir regarding quatation type boolean or number or is quation by vendor or for job
     services: [{ type: String }],
     location: {
