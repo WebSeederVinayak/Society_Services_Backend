@@ -26,6 +26,10 @@
         default: "society",
         immutable: true,
       },
+      isApproved: {
+        type: Boolean,
+        default: false,
+}
     },
     { timestamps: true }
   );
