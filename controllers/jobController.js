@@ -1,5 +1,8 @@
 const Job = require("../models/Job");
 const Application = require("../models/Application");
+const Vendor = require("../models/Vendor");
+const Notification = require("../models/Notification"); // Optional for DB-based in-app notifications
+const { sendJobNotification } = require("../utils/sendJobNotification"); // Email util
 
 // 1. Create Job (Society Only)
 exports.createJob = async (req, res) => {
@@ -42,17 +45,47 @@ exports.createJob = async (req, res) => {
     });
 
     await newJob.save();
+
+    // 🔔 Notify eligible vendors (within 20km & matching role & subscribed)
+    const nearbyVendors = await Vendor.find({
+      services: type, // match job type
+      isSubscribed: true,
+      location: {
+        $nearSphere: {
+          $geometry: {
+            type: "Point",
+            coordinates: [parseFloat(longitude), parseFloat(latitude)],
+          },
+          $maxDistance: 20000, // 20km
+        },
+      },
+    });
+
+    for (const vendor of nearbyVendors) {
+      // ✅ Send email
+      await sendJobNotification(vendor, newJob);
+
+      // ✅ Optional: Store in-app notification
+      await Notification.create({
+        userId: vendor._id,
+        title: `New ${type} job posted`,
+        message: `${title} - ${details}`,
+        link: `/vendor/jobs/${newJob._id}`,
+      });
+    }
+
     res.status(201).json({
       msg: "Job posted successfully",
       job: {
         ...newJob.toObject(),
-        status: "New" // ✅ explicitly show in response
-      }
+        status: "New", // ✅ explicitly show in response
+      },
     });
   } catch (err) {
     res.status(500).json({ msg: "Failed to post job", error: err.message });
   }
 };
+
 
 // 2. Get Jobs Within 20km for Vendors
 exports.getNearbyJobs = async (req, res) => {

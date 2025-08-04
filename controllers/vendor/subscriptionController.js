@@ -47,20 +47,20 @@ exports.purchaseSubscription = async (req, res) => {
     });
     
     // ✅ Send subscription confirmation email
-await sendSubscriptionEmail(
-  vendor.email,
-  "Subscription Activated 🎉",
-  `Hi ${vendor.name},
+    await sendSubscriptionEmail(
+      vendor.email,
+      "Subscription Activated 🎉",
+      `Hi ${vendor.name},
 
-Your subscription has been successfully activated for 1 year.
-Reference ID: ${vendor.vendorReferenceId}
-Total Price: ₹${basePrice} × ${numberOfServices} = ₹${totalPrice}
-Expires On: ${endDate.toDateString()}
+    Your subscription has been successfully activated for 1 year.
+    Reference ID: ${vendor.vendorReferenceId}
+    Total Price: ₹${basePrice} × ${numberOfServices} = ₹${totalPrice}
+    Expires On: ${endDate.toDateString()}
 
-Thank you for subscribing!
+    Thank you for subscribing!
 
-Team Velre`
-);
+    Team Velre`
+    );
 
     res.status(201).json({
       message: `Subscription activated. ₹${basePrice} × ${numberOfServices} services = ₹${totalPrice}`,
