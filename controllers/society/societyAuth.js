@@ -7,9 +7,15 @@ exports.signupSociety = async (req, res) => {
     const { username, email, password, buildingName, address, residentsCount } =
       req.body;
 
+    // 🔐 Check if email already exists
     const existing = await Society.findOne({ email });
     if (existing)
       return res.status(400).json({ msg: "Society already exists" });
+
+    // 🔐 Check if username already exists
+    const existingUsername = await Society.findOne({ username });
+    if (existingUsername)
+      return res.status(400).json({ msg: "Username already exists" });
 
     const hashed = await bcrypt.hash(password, 10);
     const newSociety = new Society({
@@ -22,11 +28,13 @@ exports.signupSociety = async (req, res) => {
     });
     console.log("Saving Society:", newSociety);
     await newSociety.save();
+
     const token = jwt.sign(
       { id: newSociety._id, role: newSociety.role },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
+
     res
       .status(201)
       .json({ msg: "Society registered successfully", authToken: token });

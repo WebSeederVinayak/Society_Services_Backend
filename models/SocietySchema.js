@@ -1,29 +1,33 @@
-const mongoose = require("mongoose");
+  const mongoose = require("mongoose");
 
-const societySchema = new mongoose.Schema(
-  {
-    username: { type: String, required: true },
-    profilePicture: { type: String, default: "AWSSocietyLogoDefualt.jpg" },
+  const societySchema = new mongoose.Schema(
+    {
+      username: {
+  type: String,
+  required: true,
+  unique: true,
+},
+      profilePicture: { type: String, default: "AWSSocietyLogoDefualt.jpg" },
 
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    buildingName: { type: String, required: true },
-    address: { type: String, required: true },
-    jobs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Job" }],
-    residentsCount: { type: Number, default: 0 },
-    location: {
-      lonngitude: { type: Number },
-      latitude: { type: Number },
-      default: { type: String, default: "Not provided" },
-      googleMapLink: { type: String, default: "Not provided" },
+      email: { type: String, required: true, unique: true },
+      password: { type: String, required: true },
+      buildingName: { type: String, required: true },
+      address: { type: String, required: true },
+      jobs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Job" }],
+      residentsCount: { type: Number, default: 0 },
+      location: {
+        lonngitude: { type: Number },
+        latitude: { type: Number },
+        default: { type: String, default: "Not provided" },
+        googleMapLink: { type: String, default: "Not provided" },
+      },
+      role: {
+        type: String,
+        default: "society",
+        immutable: true,
+      },
     },
-    role: {
-      type: String,
-      default: "society",
-      immutable: true,
-    },
-  },
-  { timestamps: true }
-);
+    { timestamps: true }
+  );
 
-module.exports = mongoose.model("Society", societySchema);
+  module.exports = mongoose.model("Society", societySchema);
