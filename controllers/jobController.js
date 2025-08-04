@@ -1,6 +1,6 @@
 const Job = require("../models/Job");
 const Application = require("../models/Application");
-const Vendor = require("../models/Vendor");
+const Vendor = require("../models/vendorSchema");
 const Notification = require("../models/Notification"); // Optional for DB-based in-app notifications
 const { sendJobNotification } = require("../utils/sendJobNotification"); // Email util
 
