@@ -1,7 +1,8 @@
 const Subscription = require("../../models/Subscription");
 const Vendor = require("../../models/vendorSchema");
+const { sendSubscriptionEmail } = require("../../utils/notify");
 
-// ✅ Vendor: Purchase Subscription (Simulated Payment Flow)
+// ✅ Vendor: Purchase Subscription (Simulated Payment Flow with Dynamic Price)
 exports.purchaseSubscription = async (req, res) => {
   const vendorId = req.user.id;
   const basePrice = 999;
@@ -12,15 +13,18 @@ exports.purchaseSubscription = async (req, res) => {
 
   try {
     const vendor = await Vendor.findById(vendorId);
+
     if (!vendor || !vendor.services || vendor.services.length === 0) {
       return res.status(400).json({
         message: "Vendor not found or no services selected. Please update your profile first.",
       });
     }
 
-    const totalPrice = basePrice * vendor.services.length;
+    // ✅ Dynamic price calculation
+    const numberOfServices = vendor.services.length;
+    const totalPrice = basePrice * numberOfServices;
 
-    // Mark all previous subscriptions as inactive and expired
+    // ✅ Mark all previous subscriptions as inactive and expired
     await Subscription.updateMany(
       { vendor: vendorId },
       {
@@ -29,21 +33,37 @@ exports.purchaseSubscription = async (req, res) => {
       }
     );
 
-    // Create new subscription
+    // ✅ Create new subscription
     const newSubscription = await Subscription.create({
       vendor: vendorId,
       vendorName: vendor.name,
-      vendorReferenceId: vendor.vendorReferenceId, // ✅ passed from Vendor
+      vendorReferenceId: vendor.vendorReferenceId,
       planPrice: totalPrice,
       startDate,
       endDate,
-      paymentStatus: "Paid",             // Simulated
+      paymentStatus: "Paid", // Simulated
       subscriptionStatus: "Active",
       isActive: true,
     });
+    
+    // ✅ Send subscription confirmation email
+await sendSubscriptionEmail(
+  vendor.email,
+  "Subscription Activated 🎉",
+  `Hi ${vendor.name},
+
+Your subscription has been successfully activated for 1 year.
+Reference ID: ${vendor.vendorReferenceId}
+Total Price: ₹${basePrice} × ${numberOfServices} = ₹${totalPrice}
+Expires On: ${endDate.toDateString()}
+
+Thank you for subscribing!
+
+Team Velre`
+);
 
     res.status(201).json({
-      message: "Subscription successfully activated for 1 year.",
+      message: `Subscription activated. ₹${basePrice} × ${numberOfServices} services = ₹${totalPrice}`,
       subscription: newSubscription,
     });
   } catch (err) {
