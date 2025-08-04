@@ -16,7 +16,7 @@ const applicationSchema = new mongoose.Schema({
   },
   applicationType: {
     type: String,
-    enum: ["direct", "quotation"],
+    enum: ["interest", "quotation"], // ✅ updated
     required: true,
   },
   quotedPrice: {
@@ -31,13 +31,24 @@ const applicationSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["approval pending", "approved"],
+    enum: ["approval pending", "approved", "rejected"],
     default: "approval pending",
-},
+  },
   createdAt: {
     type: Date,
     default: Date.now,
   },
+});
+
+// ✅ Auto-clear fields if applicationType is "interest"
+applicationSchema.pre("save", function (next) {
+  if (this.applicationType === "interest") {
+    this.message = undefined;
+    this.quotedPrice = undefined;
+    this.estimatedTime = undefined;
+    this.additionalNotes = undefined;
+  }
+  next();
 });
 
 module.exports = mongoose.model("Application", applicationSchema);

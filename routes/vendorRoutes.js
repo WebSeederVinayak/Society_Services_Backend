@@ -13,9 +13,14 @@ const {
 const {
   purchaseSubscription,
   checkSubscriptionStatus,
-  viewMySubscriptions,       // ✅ NEW
-  cancelCurrentSubscription  // ✅ NEW
+  viewMySubscriptions,       // ✅ NEW (if implemented)
+  cancelCurrentSubscription  // ✅ NEW (if implemented)
 } = require("../controllers/vendor/subscriptionController");
+
+const {
+  applyToJob,
+  getJobApplicants,
+} = require("../controllers/applicationController"); // ✅ NEW
 
 const { validateOTP } = require("../middleware/thirdPartyServicesMiddleware");
 const {
@@ -59,6 +64,20 @@ router.get(
   checkSubscriptionStatus
 );
 
+// 📩 Vendor applies to job (interest or quotation)
+router.post(
+  "/jobs/:id/apply",
+  authenticate,
+  authorizeRoles("vendor"),
+  applyToJob
+);
 
+// 🧑‍💼 Society gets all applicants for a job
+router.get(
+  "/jobs/:id/applicants",
+  authenticate,
+  authorizeRoles("society"),
+  getJobApplicants
+);
 
 module.exports = router;
