@@ -4,7 +4,7 @@ const Vendor = require("../../models/vendorSchema");
 // ✅ Vendor: Purchase Subscription (Simulated Payment Flow)
 exports.purchaseSubscription = async (req, res) => {
   const vendorId = req.user.id;
-  const planPrice = 999;
+  const basePrice = 999;
 
   const startDate = new Date();
   const endDate = new Date(startDate);
@@ -12,34 +12,45 @@ exports.purchaseSubscription = async (req, res) => {
 
   try {
     const vendor = await Vendor.findById(vendorId);
-    if (!vendor) {
-      return res.status(404).json({ message: "Vendor not found" });
+    if (!vendor || !vendor.services || vendor.services.length === 0) {
+      return res.status(400).json({
+        message: "Vendor not found or no services selected. Please update your profile first.",
+      });
     }
 
-    // Mark all previous subscriptions as inactive + expired
+    const totalPrice = basePrice * vendor.services.length;
+
+    // Mark all previous subscriptions as inactive and expired
     await Subscription.updateMany(
       { vendor: vendorId },
-      { isActive: false, subscriptionStatus: "Expired" }
+      {
+        isActive: false,
+        subscriptionStatus: "Expired",
+      }
     );
 
     // Create new subscription
     const newSubscription = await Subscription.create({
       vendor: vendorId,
       vendorName: vendor.name,
-      planPrice,
+      vendorReferenceId: vendor.vendorReferenceId, // ✅ passed from Vendor
+      planPrice: totalPrice,
       startDate,
       endDate,
       paymentStatus: "Paid",             // Simulated
       subscriptionStatus: "Active",
-      isActive: true
+      isActive: true,
     });
 
     res.status(201).json({
       message: "Subscription successfully activated for 1 year.",
-      subscription: newSubscription
+      subscription: newSubscription,
     });
   } catch (err) {
-    res.status(500).json({ message: "Subscription purchase failed", error: err.message });
+    res.status(500).json({
+      message: "Subscription purchase failed",
+      error: err.message,
+    });
   }
 };
 
@@ -48,14 +59,14 @@ exports.checkSubscriptionStatus = async (req, res) => {
   try {
     const subscription = await Subscription.findOne({
       vendor: req.user.id,
-      isActive: true
+      isActive: true,
     });
 
     if (!subscription) {
       return res.status(200).json({
         isActive: false,
         subscriptionStatus: "None",
-        message: "No active subscription found"
+        message: "No active subscription found",
       });
     }
 
@@ -63,7 +74,6 @@ exports.checkSubscriptionStatus = async (req, res) => {
     const isStillValid = now <= subscription.endDate;
 
     if (!isStillValid) {
-      // Auto-update status if expired
       subscription.isActive = false;
       subscription.subscriptionStatus = "Expired";
       await subscription.save();
@@ -72,9 +82,12 @@ exports.checkSubscriptionStatus = async (req, res) => {
     res.status(200).json({
       isActive: isStillValid,
       subscriptionStatus: isStillValid ? "Active" : "Expired",
-      expiresOn: subscription.endDate
+      expiresOn: subscription.endDate,
     });
   } catch (err) {
-    res.status(500).json({ message: "Failed to check subscription", error: err.message });
+    res.status(500).json({
+      message: "Failed to check subscription",
+      error: err.message,
+    });
   }
 };

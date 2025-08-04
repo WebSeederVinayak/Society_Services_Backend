@@ -122,6 +122,14 @@ const vendorSchema = new mongoose.Schema(
       isActive: { type: Boolean, default: false },
       expiresAt: { type: Date },
     },
+
+    vendorReferenceId: {
+      type: String,
+      required: true,
+      unique: true,
+      default: () => `VELRE-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
+},
+
   },
   { timestamps: true }
 );

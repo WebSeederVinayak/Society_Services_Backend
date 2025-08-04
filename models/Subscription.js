@@ -10,6 +10,11 @@ const subscriptionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+    vendorReferenceId: {
+  type: String,
+  required: true,
+},
+
   planPrice: {
     type: Number,
     default: 999,
@@ -32,6 +37,7 @@ const subscriptionSchema = new mongoose.Schema({
     enum: ["Active","Inactive", "Expired", "Cancelled"],
     default: "Active",
   },
+
   isActive: {
     type: Boolean,
     default: true,
