@@ -2,41 +2,38 @@ const Application = require("../models/Application");
 const Job = require("../models/Job");
 const Vendor = require("../models/vendorSchema");
 
-// Vendor shows interest or applies with quotation
+// 🔹 Vendor applies to job (quotation-based or direct)
 exports.applyToJob = async (req, res) => {
   try {
     const {
-      applicationType, // 'interest' or 'quotation'
+      applicationType, // 'quotation'
       message,
       quotedPrice,
       estimatedTime,
       additionalNotes,
     } = req.body;
+
     const jobId = req.params.id;
 
     const job = await Job.findById(jobId);
     if (!job) return res.status(404).json({ msg: "Job not found" });
 
     const existing = await Application.findOne({ job: jobId, vendor: req.user.id });
-    if (existing)
-      return res.status(400).json({ msg: "Already shown interest/applied for this job" });
+    if (existing) {
+      return res.status(400).json({ msg: "Already applied or shown interest for this job" });
+    }
 
     const application = new Application({
       job: jobId,
       vendor: req.user.id,
-      applicationType,
+      applicationType: "quotation",
+      message,
+      quotedPrice,
+      estimatedTime,
+      additionalNotes,
       status: "approval pending",
     });
 
-    // If vendor applied with quotation
-    if (applicationType === "quotation") {
-      application.message = message;
-      application.quotedPrice = quotedPrice;
-      application.estimatedTime = estimatedTime;
-      application.additionalNotes = additionalNotes;
-    }
-
-    // Change job status only for new jobs
     if (job.status === "New") {
       job.status = "Applied";
       await job.save();
@@ -44,30 +41,62 @@ exports.applyToJob = async (req, res) => {
 
     await application.save();
 
-    // [Optional Placeholder] Trigger notification to society
-    // await sendNotificationToSociety(job.society, req.user.id, applicationType);
-
-    res.status(201).json({ msg: `Application (${applicationType}) submitted`, application });
+    res.status(201).json({ msg: "Applied with quotation", application });
   } catch (err) {
-    res.status(500).json({ msg: "Failed to apply/show interest", error: err.message });
+    res.status(500).json({ msg: "Failed to apply", error: err.message });
   }
 };
 
-// Get all vendors who applied or showed interest for a job
-exports.getJobApplicants = async (req, res) => {
+// 🔹 Vendor shows interest (button click, no quotation)
+exports.showInterestInJob = async (req, res) => {
   try {
     const jobId = req.params.id;
+
     const job = await Job.findById(jobId);
     if (!job) return res.status(404).json({ msg: "Job not found" });
 
-    if (job.society.toString() !== req.user.id)
+    const existing = await Application.findOne({ job: jobId, vendor: req.user.id });
+    if (existing) {
+      return res.status(400).json({ msg: "Already applied or shown interest for this job" });
+    }
+
+    const application = new Application({
+      job: jobId,
+      vendor: req.user.id,
+      applicationType: "direct",
+      status: "approval pending",
+    });
+
+    if (job.status === "New") {
+      job.status = "Applied";
+      await job.save();
+    }
+
+    await application.save();
+
+    res.status(201).json({ msg: "Interest shown successfully", application });
+  } catch (err) {
+    res.status(500).json({ msg: "Failed to show interest", error: err.message });
+  }
+};
+
+// 🔹 Society views all applicants
+exports.getJobApplicants = async (req, res) => {
+  try {
+    const jobId = req.params.id;
+
+    const job = await Job.findById(jobId);
+    if (!job) return res.status(404).json({ msg: "Job not found" });
+
+    if (job.society.toString() !== req.user.id) {
       return res.status(403).json({ msg: "Unauthorized" });
+    }
 
     const applications = await Application.find({ job: jobId })
       .populate("vendor", "name email phone")
       .select("applicationType status vendor");
 
-    const result = applications.map(app => ({
+    const result = applications.map((app) => ({
       name: app.vendor.name,
       email: app.vendor.email,
       phone: app.vendor.phone,
@@ -81,7 +110,7 @@ exports.getJobApplicants = async (req, res) => {
   }
 };
 
-// Approve application
+// ✅ Approve a vendor application
 exports.approveApplication = async (req, res) => {
   try {
     const { applicationId } = req.params;
@@ -89,8 +118,9 @@ exports.approveApplication = async (req, res) => {
     const application = await Application.findById(applicationId).populate("job");
     if (!application) return res.status(404).json({ msg: "Application not found" });
 
-    if (application.job.society.toString() !== req.user.id)
+    if (application.job.society.toString() !== req.user.id) {
       return res.status(403).json({ msg: "Unauthorized" });
+    }
 
     application.status = "approved";
     await application.save();
@@ -105,7 +135,7 @@ exports.approveApplication = async (req, res) => {
   }
 };
 
-// Mark job completed
+// ✅ Mark job as completed
 exports.markJobComplete = async (req, res) => {
   try {
     const { jobId } = req.params;
@@ -113,8 +143,9 @@ exports.markJobComplete = async (req, res) => {
     const job = await Job.findById(jobId);
     if (!job) return res.status(404).json({ msg: "Job not found" });
 
-    if (job.society.toString() !== req.user.id)
+    if (job.society.toString() !== req.user.id) {
       return res.status(403).json({ msg: "Unauthorized" });
+    }
 
     job.status = "Completed";
     await job.save();
@@ -122,5 +153,29 @@ exports.markJobComplete = async (req, res) => {
     res.json({ msg: "Job marked as Completed" });
   } catch (err) {
     res.status(500).json({ msg: "Error updating job", error: err.message });
+  }
+};
+
+// 🔹 Get vendor application type (quotation or interest)
+exports.getVendorApplicationType = async (req, res) => {
+  try {
+    const { jobId, vendorId } = req.params;
+
+    const application = await Application.findOne({ job: jobId, vendor: vendorId })
+      .populate("vendor", "name email phone")
+      .select("applicationType");
+
+    if (!application) {
+      return res.status(404).json({ msg: "No application or interest found for this vendor" });
+    }
+
+    res.json({
+      name: application.vendor.name,
+      email: application.vendor.email,
+      phone: application.vendor.phone,
+      applicationType: application.applicationType,
+    });
+  } catch (err) {
+    res.status(500).json({ msg: "Failed to fetch vendor application type", error: err.message });
   }
 };

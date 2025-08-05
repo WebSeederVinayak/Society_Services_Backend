@@ -1,47 +1,32 @@
-const Admin = require("../../models/adminSchema.js");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-exports.signupAdmin = async (req, res) => {
-  try {
-    const { name, email, password, gender, department, subrole } = req.body;
-
-    const existing = await Admin.findOne({ email });
-    if (existing) return res.status(400).json({ msg: "Admin already exists" });
-
-    const hashed = await bcrypt.hash(password, 10);
-    const newAdmin = new Admin({
-      name,
-      email,
-      password: hashed,
-      gender,
-      department,
-      subrole,
-    });
-
-    await newAdmin.save();
-    res.status(201).json({ msg: "Admin registered successfully" });
-  } catch (err) {
-    res.status(500).json({ msg: "Server error", error: err.message });
-  }
-};
+// Get admin credentials from .env
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 exports.loginAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const admin = await Admin.findOne({ email });
-    if (!admin) return res.status(400).json({ msg: "Invalid credentials" });
 
-    const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
+    if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
+      return res.status(400).json({ msg: "Invalid credentials" });
+    }
 
     const token = jwt.sign(
-      { id: admin._id, role: admin.role, subrole: admin.subrole },
+      {
+        id: "admin-id", // dummy static ID
+        role: "admin",
+        subrole: "superadmin"
+      },
       process.env.JWT_SECRET,
       { expiresIn: "2h" }
     );
 
-    res.json({ token, role: admin.role, subrole: admin.subrole });
+    res.json({
+      token,
+      role: "admin",
+      subrole: "superadmin"
+    });
   } catch (err) {
     res.status(500).json({ msg: "Server error", error: err.message });
   }

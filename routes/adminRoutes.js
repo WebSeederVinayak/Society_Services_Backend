@@ -1,39 +1,35 @@
 const express = require("express");
 const router = express.Router();
 
-const { signupAdmin, loginAdmin } = require("../controllers/admin/adminAuth");
+const { loginAdmin } = require("../controllers/admin/adminAuth");
 
-// ✅ Alias subscription controller functions to avoid name conflict
 const {
   getAllSubscriptions,
   getVendorSubscriptionHistory,
-  cancelSubscription
+  cancelSubscription,
 } = require("../controllers/admin/subscriptionController");
 
 const { authenticate, authorizeRoles } = require("../middleware/roleBasedAuth");
 
-const { getVendorsGroupedByRole } = require("../controllers/admin/vendorController");
+const {
+  getVendorsGroupedByRole,
+  getPendingVendors,
+  approveVendor,
+  blacklistVendor,
+  getBlacklistedVendors,
+  getAllVendors,
+} = require("../controllers/admin/vendorController");
 
-// ✅ Keep society controller with original names
 const {
   approveSociety,
   getPendingSocieties,
-  getApprovedSocieties
+  getApprovedSocieties,
 } = require("../controllers/admin/societyController");
 
 // 🧑‍💼 Admin Auth
-router.post("/signup", signupAdmin);
-router.post("/login", loginAdmin);
+router.post("/login", loginAdmin); // ✅ Only login route (signup removed)
 
-// 📊 Vendor List
-router.get(
-  "/vendors-by-role",
-  authenticate,
-  authorizeRoles("admin"),
-  getVendorsGroupedByRole
-);
-
-// 📜 Subscription History Access
+// 📜 Subscription Management
 router.get(
   "/all-subscriptions",
   authenticate,
@@ -55,7 +51,50 @@ router.patch(
   cancelSubscription
 );
 
-// 🏢 Society Approval Routes
+// 🧾 Vendor Management
+router.get(
+  "/vendors-by-role",
+  authenticate,
+  authorizeRoles("admin"),
+  getVendorsGroupedByRole
+);
+
+router.get(
+  "/pending-vendors",
+  authenticate,
+  authorizeRoles("admin"),
+  getPendingVendors
+);
+
+router.patch(
+  "/approve-vendor/:vendorId",
+  authenticate,
+  authorizeRoles("admin"),
+  approveVendor
+);
+
+router.patch(
+  "/blacklist-vendor/:vendorId",
+  authenticate,
+  authorizeRoles("admin"),
+  blacklistVendor
+);
+
+router.get(
+  "/blacklisted-vendors",
+  authenticate,
+  authorizeRoles("admin"),
+  getBlacklistedVendors
+);
+
+router.get(
+  "/all-vendors",
+  authenticate,
+  authorizeRoles("admin"),
+  getAllVendors
+);
+
+// 🏢 Society Management
 router.patch(
   "/approve-society/:societyId",
   authenticate,

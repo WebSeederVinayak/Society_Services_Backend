@@ -1,15 +1,28 @@
 const express = require("express");
 const router = express.Router();
-const { createJob, getNearbyJobs } = require("../controllers/jobController");
+
+const {
+  createJob,
+  getNearbyJobs,
+  getJobById,
+  getMyPostedJobs
+} = require("../controllers/jobController");
+
 const { authMiddleware } = require("../middleware/authMiddleware");
 
-// POST /api/jobs/create
+// 🔹 POST: Create Job
 router.post("/create", authMiddleware, createJob);
 
-// GET /api/jobs/nearby?latitude=..&longitude=..
+// 🔹 GET: Jobs near vendor
 router.get("/nearby", authMiddleware, getNearbyJobs);
 
-// Health check route
+// 🔹 GET: View Single Job Details (Society/Vendor)
+router.get("/:id", authMiddleware, getJobById);
+
+// 🔹 GET: Get all jobs posted by the society
+router.get("/my/posted", authMiddleware, getMyPostedJobs);
+
+// 🔹 Health check
 router.get("/test", (req, res) => {
   res.send("Job route working");
 });

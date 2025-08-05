@@ -129,6 +129,18 @@ const vendorSchema = new mongoose.Schema(
       unique: true,
       default: () => `VELRE-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
 },
+isApproved: {
+  type: Boolean,
+  default: false, // Needs admin approval
+},
+isBlacklisted: {
+  type: Boolean,
+  default: false,
+},
+blacklistReason: {
+  type: String,
+},
+
 
   },
   { timestamps: true }
