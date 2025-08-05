@@ -2,11 +2,10 @@ const Application = require("../models/Application");
 const Job = require("../models/Job");
 const Vendor = require("../models/vendorSchema");
 
-// 🔹 Vendor applies to job (quotation-based or direct)
+// 🔹 Vendor applies to job (quotation only)
 exports.applyToJob = async (req, res) => {
   try {
     const {
-      applicationType, // 'quotation'
       message,
       quotedPrice,
       estimatedTime,
@@ -32,6 +31,7 @@ exports.applyToJob = async (req, res) => {
       estimatedTime,
       additionalNotes,
       status: "approval pending",
+      isQuotation: true,
     });
 
     if (job.status === "New") {
@@ -63,8 +63,9 @@ exports.showInterestInJob = async (req, res) => {
     const application = new Application({
       job: jobId,
       vendor: req.user.id,
-      applicationType: "direct",
+      applicationType: "interest",
       status: "approval pending",
+      isQuotation: false,
     });
 
     if (job.status === "New") {

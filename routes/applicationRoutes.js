@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-
 const {
   applyToJob,
   showInterestInJob,
@@ -12,22 +11,22 @@ const {
 
 const { authMiddleware } = require("../middleware/authMiddleware");
 
-// 🔹 Apply with Quotation or Direct
-router.post("/:id/apply", authMiddleware, applyToJob);
-
-// 🔹 Show Interest (button click)
+// 🔹 Vendor shows interest (without quotation)
 router.post("/:id/interest", authMiddleware, showInterestInJob);
 
-// 🔹 Society: View All Applicants
+// 🔹 Vendor applies with quotation only
+router.post("/:id/apply", authMiddleware, applyToJob);
+
+// 🔹 Society views all vendor applicants for a job
 router.get("/:id/applicants", authMiddleware, getJobApplicants);
 
-// ✅ Approve Application
+// ✅ Society approves a vendor application
 router.post("/:applicationId/approve", authMiddleware, approveApplication);
 
-// ✅ Mark Job Complete
+// ✅ Society marks job as completed
 router.post("/job/:jobId/complete", authMiddleware, markJobComplete);
 
-// 🔹 Society: View if Vendor Applied or Showed Interest
+// 🔹 Society checks what type of application a vendor submitted
 router.get("/:jobId/vendor/:vendorId", authMiddleware, getVendorApplicationType);
 
 module.exports = router;
