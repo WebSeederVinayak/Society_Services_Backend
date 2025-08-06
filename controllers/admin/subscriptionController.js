@@ -5,29 +5,36 @@ const Vendor = require("../../models/vendorSchema");
 exports.getAllSubscriptions = async (req, res) => {
   try {
     const subscriptions = await Subscription.find({})
-      .populate("vendor", "name email phone") // Optional, since vendorName is also stored separately
+      .populate("vendor", "name email phone referenceId services")
       .sort({ createdAt: -1 });
 
     res.status(200).json({ subscriptions });
   } catch (err) {
-    res.status(500).json({ message: "Failed to fetch subscriptions", error: err.message });
+    res.status(500).json({
+      message: "Failed to fetch subscriptions",
+      error: err.message,
+    });
   }
 };
 
-// ✅ Admin: Get one vendor's full subscription history
+// ✅ Admin: Get full subscription history of a specific vendor
 exports.getVendorSubscriptionHistory = async (req, res) => {
   try {
-    const vendorId = req.params.vendorId;
+    const { vendorId } = req.params;
 
     const history = await Subscription.find({ vendor: vendorId })
       .sort({ startDate: -1 });
 
     res.status(200).json({ history });
   } catch (err) {
-    res.status(500).json({ message: "Failed to fetch vendor history", error: err.message });
+    res.status(500).json({
+      message: "Failed to fetch vendor subscription history",
+      error: err.message,
+    });
   }
 };
 
+// ✅ Admin: Cancel a specific subscription
 exports.cancelSubscription = async (req, res) => {
   const { subscriptionId } = req.params;
 
@@ -44,6 +51,9 @@ exports.cancelSubscription = async (req, res) => {
 
     res.status(200).json({ message: "Subscription cancelled successfully." });
   } catch (err) {
-    res.status(500).json({ message: "Failed to cancel subscription", error: err.message });
+    res.status(500).json({
+      message: "Failed to cancel subscription",
+      error: err.message,
+    });
   }
 };

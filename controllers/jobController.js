@@ -100,6 +100,7 @@ exports.getNearbyJobs = async (req, res) => {
         },
       },
       isActive: true,
+      status: { $ne: "Expired" }, // Exclude expired jobs
     };
 
     if (quotationRequired === "true") filter.quotationRequired = true;
@@ -186,5 +187,26 @@ exports.filterJobsByTypeAndDate = async (req, res) => {
     res.json(jobs);
   } catch (err) {
     res.status(500).json({ msg: "Failed to filter jobs", error: err.message });
+  }
+};
+
+// 6. Expire Jobs Older Than 90 Days
+exports.expireOldJobs = async (req, res) => {
+  try {
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+
+    const jobsToExpire = await Job.find({
+      createdAt: { $lt: ninetyDaysAgo },
+      status: { $nin: ["Completed", "Expired"] },
+    });
+
+    for (const job of jobsToExpire) {
+      job.status = "Expired";
+      await job.save();
+    }
+
+    res.json({ msg: `${jobsToExpire.length} job(s) marked as Expired.` });
+  } catch (err) {
+    res.status(500).json({ msg: "Failed to expire old jobs", error: err.message });
   }
 };

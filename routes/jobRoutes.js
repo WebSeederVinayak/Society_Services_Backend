@@ -5,7 +5,9 @@ const {
   createJob,
   getNearbyJobs,
   getJobById,
-  getMyPostedJobs
+  getMyPostedJobs,
+  filterJobsByTypeAndDate,
+  expireOldJobs // 🔁 NEW: controller to expire jobs older than 90 days
 } = require("../controllers/jobController");
 
 const { authMiddleware } = require("../middleware/authMiddleware");
@@ -21,6 +23,12 @@ router.get("/:id", authMiddleware, getJobById);
 
 // 🔹 GET: Get all jobs posted by the society
 router.get("/my/posted", authMiddleware, getMyPostedJobs);
+
+// 🔹 Optional: Filter Jobs by type/date (Admin or analytics)
+router.get("/filter", authMiddleware, filterJobsByTypeAndDate);
+
+// 🔁 POST: Expire jobs older than 90 days
+router.post("/expire-old", expireOldJobs); // No auth — protect this in cron or admin later
 
 // 🔹 Health check
 router.get("/test", (req, res) => {

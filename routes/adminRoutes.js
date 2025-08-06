@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 
 const { loginAdmin } = require("../controllers/admin/adminAuth");
+const { getJobStats } = require("../controllers/admin/jobStatsController");
+
 
 const {
   getAllSubscriptions,
@@ -115,5 +117,14 @@ router.get(
   authorizeRoles("admin"),
   getApprovedSocieties
 );
+
+// 📊 Job Stats (Weekly/Monthly/Yearly)
+router.get(
+  "/jobs/stats",
+  authenticate,
+  authorizeRoles("admin"),
+  getJobStats
+);
+
 
 module.exports = router;

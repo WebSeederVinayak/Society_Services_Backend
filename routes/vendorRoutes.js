@@ -14,7 +14,8 @@ const {
   purchaseSubscription,
   checkSubscriptionStatus,
   viewMySubscriptions,       // ✅ NEW (if implemented)
-  cancelCurrentSubscription  // ✅ NEW (if implemented)
+  cancelCurrentSubscription, // ✅ NEW (if implemented)
+  addServiceToSubscription   // ✅ ✅ Add this line
 } = require("../controllers/vendor/subscriptionController");
 
 const {
@@ -62,6 +63,14 @@ router.get(
   authenticate,
   authorizeRoles("vendor"),
   checkSubscriptionStatus
+);
+
+// 🔄 Add a new service (prorated charge)
+router.post(
+  "/add-service",
+  authenticate,
+  authorizeRoles("vendor"),
+  addServiceToSubscription
 );
 
 // 📩 Vendor applies to job (interest or quotation)
