@@ -19,7 +19,7 @@ exports.loginAdmin = async (req, res) => {
         subrole: "superadmin"
       },
       process.env.JWT_SECRET,
-      { expiresIn: "2h" }
+      { expiresIn: "1d" }
     );
 
     res.json({
